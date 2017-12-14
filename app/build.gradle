@@ -26,5 +26,11 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+
+    //Firebase
     compile 'com.google.firebase:firebase-firestore:11.4.2'
+
+    //Lombok
+    annotationProcessor "org.projectlombok:lombok:1.16.18"
+    provided "org.projectlombok:lombok:1.16.18"
 }
