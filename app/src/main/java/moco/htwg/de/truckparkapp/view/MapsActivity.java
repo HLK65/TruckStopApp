@@ -115,7 +115,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 public void onComplete(@NonNull Task<Location> task) {
                     if(task.isSuccessful() && task.getResult() != null){
                         lastKnownPosition = task.getResult();
-                        System.out.println("lastKnownPosition: "+ lastKnownPosition);
                         map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()), DEFAULT_ZOOM));
 
 
@@ -157,7 +156,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onLocationResult(LocationResult locationResult){
                 super.onLocationResult(locationResult);
                 Location location = locationResult.getLastLocation();
-                System.out.println("location: "+ location);
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(),location.getLongitude()), DEFAULT_ZOOM));
             }
         };
