@@ -1,4 +1,4 @@
-package moco.htwg.de.truckparkapp;
+package moco.htwg.de.truckparkapp.view;
 
 
 
@@ -36,6 +36,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import moco.htwg.de.truckparkapp.R;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -97,10 +98,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (map == null) {
             return;
         }
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            getLocationPermission();
-            //locationPermissionGranted = true;
-        }
+        checkLocationPermission();
         map.setMyLocationEnabled(true);
         map.getUiSettings().setMyLocationButtonEnabled(true);
         map.getUiSettings().setZoomControlsEnabled(true);
@@ -109,7 +107,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void getDeviceLocation(){
         try {
             if(locationPermissionGranted) {
-                getLocationPermission();
+                checkLocationPermission();
             }
             Task locationResult = fusedLocationProviderClient.getLastLocation();
             locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
@@ -172,7 +170,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 @Override
                 public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
                     Log.i(TAG, "location settings successful checked");
-                    getLocationPermission();
+                    checkLocationPermission();
                     fusedLocationProviderClient.requestLocationUpdates(locationRequest,locationCallback, Looper.myLooper());
                 }
         }).addOnFailureListener(this, new OnFailureListener() {
@@ -197,7 +195,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-    private void getLocationPermission() {
+    private void checkLocationPermission() {
     /*
      * Request location permission, so that we can get the location of the
      * device. The result of the permission request is handled by a callback,

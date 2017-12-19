@@ -32,7 +32,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".view.MapsActivity"
             android:label="@string/title_activity_maps">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -41,7 +41,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".FirestoreTestActivity"
+            android:name=".view.FirestoreTestActivity"
             android:label="@string/title_activity_firestore_test"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>

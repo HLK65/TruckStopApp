@@ -1,4 +1,4 @@
-package moco.htwg.de.truckparkapp;
+package moco.htwg.de.truckparkapp.view;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,6 +16,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import moco.htwg.de.truckparkapp.R;
 
 public class FirestoreTestActivity extends AppCompatActivity {
 
