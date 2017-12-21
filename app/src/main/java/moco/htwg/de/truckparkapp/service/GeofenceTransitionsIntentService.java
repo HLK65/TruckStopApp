@@ -21,7 +21,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
     private static final String TAG = "GeofenceTransIntServ";
 
-    public static final String PARKING_BROADCAST = "Parking at HTWG";
+    public static final String PARKING_BROADCAST = "Parking", ADDITIONAL_INFO = "additional info";
 
     public GeofenceTransitionsIntentService() {
         super(TAG);
@@ -43,10 +43,17 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
         int geofenceTransition = geofencingEvent != null ? geofencingEvent.getGeofenceTransition() : 0;
 
-        if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+        if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
             Log.i(TAG, geofenceTransitionDetails);
+        } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT){
+            List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
+            String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
+            Log.i(TAG, geofenceTransitionDetails);
+            Intent broadCastIntent = new Intent(PARKING_BROADCAST);
+            broadCastIntent.putExtra("ADDITIONAL_INFO", "Stop Parking");
+            LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
         } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
             /*
              * this transaction will be called if device stays for a given time period inside geofence area
@@ -58,6 +65,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
             Log.i(TAG, geofenceTransitionDetails);
             Intent broadCastIntent = new Intent(PARKING_BROADCAST);
+            broadCastIntent.putExtra("ADDITIONAL_INFO", "Start Parking");
             LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
         } else {
             Log.e(TAG, "unknown geofence type");

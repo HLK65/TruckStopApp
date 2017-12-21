@@ -105,7 +105,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                enteredTruckParkSlotIndicator.setVisibility(View.VISIBLE);
+                if(intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")){
+                    enteredTruckParkSlotIndicator.setVisibility(View.VISIBLE);
+                } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")){
+                    enteredTruckParkSlotIndicator.setVisibility(View.INVISIBLE);
+                }
+
             }
         }, new IntentFilter(GeofenceTransitionsIntentService.PARKING_BROADCAST));
     }
