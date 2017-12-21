@@ -287,7 +287,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         truckParkingSpace.getValue().latitude,
                         truckParkingSpace.getValue().longitude, 100)
                     .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
+                    .setLoiteringDelay(10000)
                     .build());
         }
         pendingGeofenceTask = PendingGeofenceTask.ADD;

@@ -34,10 +34,18 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
         int geofenceTransition = geofencingEvent != null ? geofencingEvent.getGeofenceTransition() : 0;
 
-        if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT){
+        if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
+            Log.i(TAG, geofenceTransitionDetails);
+        } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
+            /*
+             * this transaction will be called if device stays for a given time period inside geofence area
+             * -> setLoiteringDelay(time in millis) when creating geofence object
+             */
             //TODO inkrement/dekrement value in database
+            List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
+            String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
             Log.i(TAG, geofenceTransitionDetails);
         } else {
             Log.e(TAG, "unknown geofence type");
@@ -60,6 +68,8 @@ public class GeofenceTransitionsIntentService extends IntentService {
                 return "enter Geofence";
             case Geofence.GEOFENCE_TRANSITION_EXIT:
                 return "exit Geofence";
+            case Geofence.GEOFENCE_TRANSITION_DWELL:
+                return "dwell geofence";
             default:
                 return "unknown";
         }
