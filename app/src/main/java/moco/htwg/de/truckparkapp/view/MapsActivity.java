@@ -3,8 +3,12 @@ package moco.htwg.de.truckparkapp.view;
 
 
 import android.annotation.SuppressLint;
+import android.app.Fragment;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 
@@ -15,7 +19,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -88,12 +95,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        final TextView enteredTruckParkSlotIndicator = findViewById(R.id.entered_truck_park_slot_indicator);
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingRequest();
         geofences = new ArrayList<>();
         getGeofencesFromDatabase();
         geofencingClient = LocationServices.getGeofencingClient(this);
+        LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                enteredTruckParkSlotIndicator.setVisibility(View.VISIBLE);
+            }
+        }, new IntentFilter(GeofenceTransitionsIntentService.PARKING_BROADCAST));
     }
 
     @Override
@@ -176,7 +190,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if(locationPermissionGranted) {
                 checkLocationPermission();
             }
-            Task locationResult = fusedLocationProviderClient.getLastLocation();
+            Task<Location> locationResult = fusedLocationProviderClient.getLastLocation();
             locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
                 @Override
                 public void onComplete(@NonNull Task<Location> task) {

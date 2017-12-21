@@ -2,4 +2,5 @@
     <string name="app_name">TruckParkApp</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_firestore_test">FirestoreTestActivity</string>
+    <string name="entered_truck_park_slot">Truckparkplatz befahren</string>
 </resources>

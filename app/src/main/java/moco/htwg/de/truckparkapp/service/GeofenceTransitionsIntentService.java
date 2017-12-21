@@ -3,6 +3,7 @@ package moco.htwg.de.truckparkapp.service;
 import android.app.IntentService;
 import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -20,8 +21,16 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
     private static final String TAG = "GeofenceTransIntServ";
 
+    public static final String PARKING_BROADCAST = "Parking at HTWG";
+
     public GeofenceTransitionsIntentService() {
         super(TAG);
+    }
+
+    @Override
+    public void onCreate(){
+        super.onCreate();
+
     }
 
     @Override
@@ -44,9 +53,12 @@ public class GeofenceTransitionsIntentService extends IntentService {
              * -> setLoiteringDelay(time in millis) when creating geofence object
              */
             //TODO inkrement/dekrement value in database
+
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
             Log.i(TAG, geofenceTransitionDetails);
+            Intent broadCastIntent = new Intent(PARKING_BROADCAST);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
         } else {
             Log.e(TAG, "unknown geofence type");
         }
