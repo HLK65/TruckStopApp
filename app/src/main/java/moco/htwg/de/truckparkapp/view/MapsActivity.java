@@ -3,6 +3,8 @@ package moco.htwg.de.truckparkapp.view;
 
 
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 
@@ -18,6 +20,9 @@ import android.util.Log;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -36,12 +41,26 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import moco.htwg.de.truckparkapp.R;
+import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, OnCompleteListener<Void> {
+
+
+
+    private enum PendingGeofenceTask {
+        ADD, REMOVE, NONE
+    }
 
     private static final String TAG = MapsActivity.class.getSimpleName();
+
+
 
     private GoogleMap map;
     private boolean locationPermissionGranted;
@@ -53,6 +72,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationCallback locationCallback;
     private LocationSettingsRequest locationSettingsRequest;
     private SettingsClient settingsClient;
+    private GeofencingClient geofencingClient;
+    private List<Geofence> geofences;
+    private PendingIntent geofencePendingIntent;
+    private PendingGeofenceTask pendingGeofenceTask = PendingGeofenceTask.NONE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +91,45 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingRequest();
+        geofences = new ArrayList<>();
+        getGeofencesFromDatabase();
+        geofencingClient = LocationServices.getGeofencingClient(this);
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        checkLocationPermission();
+        performPendingGeofenceTask();
+
+    }
+
+    private void performPendingGeofenceTask() {
+        if(pendingGeofenceTask == PendingGeofenceTask.ADD){
+            addGeofences();
+        }
+    }
+
+    private void addGeofences() {
+        checkLocationPermission();
+        geofencingClient.addGeofences(getGeofencingRequest(), getGeofencesPendingIntent()).addOnCompleteListener(this);
+    }
+
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.addGeofences(geofences);
+        return builder.build();
+    }
+
+    private PendingIntent getGeofencesPendingIntent() {
+        if(geofencePendingIntent != null){
+            return geofencePendingIntent;
+        }
+        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
 
     @Override
     protected void onResume(){
@@ -92,6 +153,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         updateLocationUI();
         getDeviceLocation();
         startLocationUpdates();
+    }
+
+    @Override
+    public void onComplete(@NonNull Task<Void> task) {
+        pendingGeofenceTask = PendingGeofenceTask.NONE;
+        System.out.println("on Complete");
     }
 
     private void updateLocationUI() {
@@ -208,6 +275,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
+    }
+
+    private void getGeofencesFromDatabase(){
+        Map<String, LatLng> truckParkingSpaces = new HashMap<>();
+        truckParkingSpaces.put("HTWG", new LatLng(47.668110, 9.169001));
+        for(Map.Entry<String, LatLng> truckParkingSpace : truckParkingSpaces.entrySet()){
+            geofences.add(new Geofence.Builder()
+                    .setRequestId(truckParkingSpace.getKey())
+                    .setCircularRegion(
+                        truckParkingSpace.getValue().latitude,
+                        truckParkingSpace.getValue().longitude, 100)
+                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
+                    .build());
+        }
+        pendingGeofenceTask = PendingGeofenceTask.ADD;
     }
 
 }
