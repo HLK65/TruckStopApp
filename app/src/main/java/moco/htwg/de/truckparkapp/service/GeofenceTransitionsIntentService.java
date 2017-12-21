@@ -21,7 +21,10 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
     private static final String TAG = "GeofenceTransIntServ";
 
-    public static final String PARKING_BROADCAST = "Parking", ADDITIONAL_INFO = "additional info";
+    public static final String PARKING_BROADCAST = "Parking";
+    public static final String ADDITIONAL_INFO = "ADDITIONAL_INFO";
+    public static final String PARKING_LOT_ID = "PARKING_LOT_ID";
+
 
     public GeofenceTransitionsIntentService() {
         super(TAG);
@@ -47,26 +50,26 @@ public class GeofenceTransitionsIntentService extends IntentService {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
             Log.i(TAG, geofenceTransitionDetails);
+            Intent broadCastIntent = new Intent(PARKING_BROADCAST);
+            broadCastIntent.putExtra(ADDITIONAL_INFO, "Start Parking");
+            broadCastIntent.putExtra(PARKING_LOT_ID, triggeringGeofences.get(0).getRequestId());
+            LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
         } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT){
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
             Log.i(TAG, geofenceTransitionDetails);
             Intent broadCastIntent = new Intent(PARKING_BROADCAST);
-            broadCastIntent.putExtra("ADDITIONAL_INFO", "Stop Parking");
+            broadCastIntent.putExtra(ADDITIONAL_INFO, "Stop Parking");
+            broadCastIntent.putExtra(PARKING_LOT_ID, triggeringGeofences.get(0).getRequestId());
             LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
         } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
-            /*
-             * this transaction will be called if device stays for a given time period inside geofence area
-             * -> setLoiteringDelay(time in millis) when creating geofence object
-             */
-            //TODO inkrement/dekrement value in database
+
+
+
 
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
-            Log.i(TAG, geofenceTransitionDetails);
-            Intent broadCastIntent = new Intent(PARKING_BROADCAST);
-            broadCastIntent.putExtra("ADDITIONAL_INFO", "Start Parking");
-            LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
+
         } else {
             Log.e(TAG, "unknown geofence type");
         }

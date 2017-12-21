@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -43,10 +44,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.maps.android.PolyUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,6 +87,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Geofence> geofences;
     private PendingIntent geofencePendingIntent;
     private PendingGeofenceTask pendingGeofenceTask = PendingGeofenceTask.NONE;
+    private Polygon parkingLot;
+    private Map<String, PolygonOptions> mockParkingLotsDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,20 +101,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        final TextView enteredTruckParkSlotIndicator = findViewById(R.id.entered_truck_park_slot_indicator);
+
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingRequest();
         geofences = new ArrayList<>();
-        getGeofencesFromDatabase();
+        mockParkingLotsDatabase = new HashMap<>();
+
         geofencingClient = LocationServices.getGeofencingClient(this);
         LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if(intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")){
-                    enteredTruckParkSlotIndicator.setVisibility(View.VISIBLE);
+
+                    PolygonOptions polygonOptions = mockParkingLotsDatabase.get(intent.getStringExtra("PARKING_LOT_ID"));
+                    if(polygonOptions != null){
+                        parkingLot = map.addPolygon(polygonOptions);
+                    }
                 } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")){
-                    enteredTruckParkSlotIndicator.setVisibility(View.INVISIBLE);
+
+                    parkingLot = null;
+
                 }
 
             }
@@ -172,6 +185,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         updateLocationUI();
         getDeviceLocation();
         startLocationUpdates();
+        getGeofencesFromDatabase();
     }
 
     @Override
@@ -237,12 +251,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void createLocationCallback(){
         locationCallback = new LocationCallback() {
-
+            final TextView enteredTruckParkSlotIndicator = findViewById(R.id.entered_truck_park_slot_indicator);
             @Override
             public void onLocationResult(LocationResult locationResult){
                 super.onLocationResult(locationResult);
                 Location location = locationResult.getLastLocation();
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(),location.getLongitude()), DEFAULT_ZOOM));
+                if(parkingLot != null){
+                    boolean containsLocation = PolyUtil.containsLocation(new LatLng(location.getLatitude(), location.getLongitude()), parkingLot.getPoints(), true);
+                    if(containsLocation) {
+                        //TODO inkrement value in database
+                        enteredTruckParkSlotIndicator.setVisibility(View.VISIBLE);
+                    } else if (!containsLocation){
+                        //TODO dekrement value in database
+                        enteredTruckParkSlotIndicator.setVisibility(View.INVISIBLE);
+                    }
+                }
             }
         };
     }
@@ -299,6 +323,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void getGeofencesFromDatabase(){
         Map<String, LatLng> truckParkingSpaces = new HashMap<>();
         truckParkingSpaces.put("HTWG", new LatLng(47.668110, 9.169001));
+
+
+        PolygonOptions polygonOptions = new PolygonOptions().add(
+                new LatLng(47.668340, 9.169379),
+                new LatLng(47.667807, 9.169234),
+                new LatLng(47.667902, 9.168608),
+                new LatLng(47.668447, 9.168759))
+                .strokeColor(Color.RED);
+        mockParkingLotsDatabase.put("HTWG", polygonOptions);
+
         for(Map.Entry<String, LatLng> truckParkingSpace : truckParkingSpaces.entrySet()){
             geofences.add(new Geofence.Builder()
                     .setRequestId(truckParkingSpace.getKey())
