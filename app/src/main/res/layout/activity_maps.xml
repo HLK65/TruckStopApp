@@ -4,5 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/map"
-    tools:context="moco.htwg.de.truckparkapp.MapsActivity"
-    android:name="com.google.android.gms.maps.SupportMapFragment"/>
+    tools:context="moco.htwg.de.truckparkapp.view.MapsActivity"
+    android:name="com.google.android.gms.maps.SupportMapFragment">
+
+    <TextView
+        android:id="@+id/entered_truck_park_slot_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        android:text="@string/entered_truck_park_slot"
+        android:textColor="#008e00"/>
+
+</fragment>
+

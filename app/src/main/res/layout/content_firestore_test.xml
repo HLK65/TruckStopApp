@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="moco.htwg.de.truckparkapp.FirestoreTestActivity"
+    tools:context="moco.htwg.de.truckparkapp.view.FirestoreTestActivity"
     tools:showIn="@layout/activity_firestore_test">
 
 </android.support.constraint.ConstraintLayout>
