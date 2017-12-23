@@ -9,4 +9,5 @@
 
     <string name="action_settings">Settings</string>
     <string name="entered_truck_park_slot">Truckparkplatz befahren</string>
+    <string name="menu_map">Map</string>
 </resources>
