@@ -65,8 +65,6 @@ public class GeofenceTransitionsIntentService extends IntentService {
         } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
 
 
-
-
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition, triggeringGeofences);
 
