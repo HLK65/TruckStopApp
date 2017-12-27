@@ -12,7 +12,6 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -71,9 +70,9 @@ import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
  */
 public class MapsFragment extends Fragment implements OnMapReadyCallback, OnCompleteListener<Void> {
 
-    private static final String TAG = MapsFragment.class.getSimpleName();
     public static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     public static float DEFAULT_ZOOM = 17.0f;
+    private final String TAG = this.getClass().getSimpleName();
     private GoogleMap map;
     private boolean locationPermissionGranted;
     private FusedLocationProviderClient fusedLocationProviderClient;
@@ -127,7 +126,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
         settingsClient = LocationServices.getSettingsClient(context);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        MapView mapView = (MapView) view.findViewById(R.id.map);
+        MapView mapView = view.findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
@@ -239,7 +238,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     @Override
     public void onComplete(@NonNull Task<Void> task) {
         pendingGeofenceTask = PendingGeofenceTask.NONE;
-        System.out.println("on Complete");
+        Log.d(TAG, "on Complete");
     }
 
     private void updateLocationUI() {
@@ -281,15 +280,15 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
     private void createLocationRequest() {
         locationRequest = new LocationRequest();
-        /**
-         * desired request interval. may be faster or lower, depends on other applications (faster) and location sources (lower)
+        /*
+          desired request interval. may be faster or lower, depends on other applications (faster) and location sources (lower)
          */
         locationRequest.setInterval(1000);
-        /**
+        /*
          * update wont be faster than entered interval
          */
         locationRequest.setFastestInterval(1000);
-        /**
+        /*
          * self explaining
          */
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -411,7 +410,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        void onMapsFragmentInteraction(Object o);
     }
 
 }
