@@ -11,11 +11,18 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,6 +78,42 @@ public class FirestoreFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }*/
         db = FirebaseFirestore.getInstance();
+
+        db.collection("parkingLots")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            TextView textView = getView().findViewById(R.id.firestore_text);
+                            textView.setText("");
+                            for (DocumentSnapshot document : task.getResult()) {
+                                Log.d(TAG, document.getId() + " => " + document.getData());
+                                textView.append(document.getId() + " => " + document.getData() + "\n");
+                            }
+                        } else {
+                            Log.w(TAG, "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+
+        db.collection("dummies")
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Log.w(TAG, "Listen failed.", e);
+                            return;
+                        }
+
+                        TextView textView = getView().findViewById(R.id.firestore_text2);
+                        textView.setText("");
+                        for (DocumentSnapshot document : documentSnapshots) {
+                            Log.d(TAG, document.getId() + " => " + document.getData());
+                            textView.append(document.getId() + " => " + document.getData() + "\n");
+                        }
+                    }
+                });
     }
 
     @Override
