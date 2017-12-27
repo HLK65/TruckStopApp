@@ -78,48 +78,12 @@ public class FirestoreFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }*/
         db = FirebaseFirestore.getInstance();
-
-        // get data once
-        db.collection("parkingLots")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            TextView textView = getView().findViewById(R.id.firestore_text);
-                            textView.setText("");
-                            for (DocumentSnapshot document : task.getResult()) {
-                                textView.append(document.getId() + " => " + document.getData() + "\n");
-                            }
-                        } else {
-                            Log.w(TAG, "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
-
-        // get data and stay subscribed (listen to changes)
-        db.collection("dummies")
-                .addSnapshotListener(new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
-                        if (e != null) {
-                            Log.w(TAG, "Listen failed.", e);
-                            return;
-                        }
-
-                        TextView textView = getView().findViewById(R.id.firestore_text2);
-                        textView.setText("");
-                        for (DocumentSnapshot document : documentSnapshots) {
-                            textView.append(document.getId() + " => " + document.getData() + "\n");
-                        }
-                    }
-                });
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_firestore, container, false);
+        final View view = inflater.inflate(R.layout.fragment_firestore, container, false);
 
         //register fab listener
         FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab2);
@@ -131,6 +95,42 @@ public class FirestoreFragment extends Fragment {
                 save();
             }
         });
+
+        // get data once
+        db.collection("parkingLots")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            TextView textView = view.findViewById(R.id.firestore_text);
+                            textView.setText("");
+                            for (DocumentSnapshot document : task.getResult()) {
+                                textView.append(document.getId() + " => " + document.getData() + "\n");
+                            }
+                        } else {
+                            Log.w(TAG, "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+
+        // get data and stay subscribed (listen to changes)
+
+        db.collection("dummies")
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Log.w(TAG, "Listen failed.", e);
+                            return;
+                        }
+                        TextView textView = view.findViewById(R.id.firestore_text2);
+                        textView.setText("");
+                        for (DocumentSnapshot document : documentSnapshots) {
+                            textView.append(document.getId() + " => " + document.getData() + "\n");
+                        }
+                    }
+                });
 
         // Inflate the layout for this fragment
         return view;
