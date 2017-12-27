@@ -79,6 +79,7 @@ public class FirestoreFragment extends Fragment {
         }*/
         db = FirebaseFirestore.getInstance();
 
+        // get data once
         db.collection("parkingLots")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -88,7 +89,6 @@ public class FirestoreFragment extends Fragment {
                             TextView textView = getView().findViewById(R.id.firestore_text);
                             textView.setText("");
                             for (DocumentSnapshot document : task.getResult()) {
-                                Log.d(TAG, document.getId() + " => " + document.getData());
                                 textView.append(document.getId() + " => " + document.getData() + "\n");
                             }
                         } else {
@@ -97,6 +97,7 @@ public class FirestoreFragment extends Fragment {
                     }
                 });
 
+        // get data and stay subscribed (listen to changes)
         db.collection("dummies")
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
@@ -109,7 +110,6 @@ public class FirestoreFragment extends Fragment {
                         TextView textView = getView().findViewById(R.id.firestore_text2);
                         textView.setText("");
                         for (DocumentSnapshot document : documentSnapshots) {
-                            Log.d(TAG, document.getId() + " => " + document.getData());
                             textView.append(document.getId() + " => " + document.getData() + "\n");
                         }
                     }

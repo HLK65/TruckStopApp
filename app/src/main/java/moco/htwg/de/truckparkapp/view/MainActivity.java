@@ -20,6 +20,7 @@ import moco.htwg.de.truckparkapp.R;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MapsFragment.OnFragmentInteractionListener, FirestoreFragment.OnFragmentInteractionListener {
 
     private final String TAG = this.getClass().getSimpleName();
+    FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
 
         Fragment fragment = MapsFragment.newInstance(); //Default Fragment (app start)
-        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.content, fragment)
                 .commit();
@@ -80,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (fragment != null) {
-            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction()
                     .replace(R.id.content, fragment)
                     .commit();
