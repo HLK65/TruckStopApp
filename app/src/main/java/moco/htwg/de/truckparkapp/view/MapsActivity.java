@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 
 import moco.htwg.de.truckparkapp.R;
+import moco.htwg.de.truckparkapp.model.ParkingLot;
 import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
 
 
@@ -88,7 +89,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private PendingIntent geofencePendingIntent;
     private PendingGeofenceTask pendingGeofenceTask = PendingGeofenceTask.NONE;
     private Polygon parkingLot;
-    private Map<String, PolygonOptions> mockParkingLotsDatabase;
+    private Map<String, ParkingLot> mockParkingLotsDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,7 +115,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onReceive(Context context, Intent intent) {
                 if(intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")){
 
-                    PolygonOptions polygonOptions = mockParkingLotsDatabase.get(intent.getStringExtra("PARKING_LOT_ID"));
+                    PolygonOptions polygonOptions = mockParkingLotsDatabase.get(intent.getStringExtra("PARKING_LOT_ID")).getPolygonOptions();
                     if(polygonOptions != null){
                         parkingLot = map.addPolygon(polygonOptions);
                     }
@@ -238,11 +239,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         /**
          * desired request interval. may be faster or lower, depends on other applications (faster) and location sources (lower)
          */
-        locationRequest.setInterval(5000);
+        locationRequest.setInterval(1000);
         /**
          * update wont be faster than entered interval
          */
-        locationRequest.setFastestInterval(5000);
+        locationRequest.setFastestInterval(1000);
         /**
          * self explaining
          */
@@ -325,26 +326,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         truckParkingSpaces.put("HTWG", new LatLng(47.668110, 9.169001));
 
 
-        PolygonOptions polygonOptions = new PolygonOptions().add(
+        ParkingLot parkingLotHtwgKonstanz = new ParkingLot(
                 new LatLng(47.668340, 9.169379),
                 new LatLng(47.667807, 9.169234),
                 new LatLng(47.667902, 9.168608),
-                new LatLng(47.668447, 9.168759))
-                .strokeColor(Color.RED);
-        mockParkingLotsDatabase.put("HTWG", polygonOptions);
+                new LatLng(47.668447, 9.168759));
+        parkingLotHtwgKonstanz.showParkingLotOnMap(Color.RED);
+        parkingLotHtwgKonstanz.setName("HTWG");
+        mockParkingLotsDatabase.put(parkingLotHtwgKonstanz.getName(), parkingLotHtwgKonstanz);
 
         for(Map.Entry<String, LatLng> truckParkingSpace : truckParkingSpaces.entrySet()){
             geofences.add(new Geofence.Builder()
                     .setRequestId(truckParkingSpace.getKey())
                     .setCircularRegion(
                         truckParkingSpace.getValue().latitude,
-                        truckParkingSpace.getValue().longitude, 100)
+                        truckParkingSpace.getValue().longitude, 200)
                     .setExpirationDuration(Geofence.NEVER_EXPIRE)
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
                     .setLoiteringDelay(10000)
                     .build());
         }
         pendingGeofenceTask = PendingGeofenceTask.ADD;
+        performPendingGeofenceTask();
     }
 
 }
