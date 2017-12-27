@@ -12,6 +12,7 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -187,32 +188,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
         checkLocationPermission();
         performPendingGeofenceTask();
-
-    }
-
-    private void performPendingGeofenceTask() {
-        if (pendingGeofenceTask == PendingGeofenceTask.ADD) {
-            addGeofences();
-        }
-    }
-
-    private void addGeofences() {
-        checkLocationPermission();
-        geofencingClient.addGeofences(getGeofencingRequest(), getGeofencesPendingIntent()).addOnCompleteListener(this);
-    }
-
-    private GeofencingRequest getGeofencingRequest() {
-        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-        builder.addGeofences(geofences);
-        return builder.build();
-    }
-
-    private PendingIntent getGeofencesPendingIntent() {
-        if (geofencePendingIntent != null) {
-            return geofencePendingIntent;
-        }
-        Intent intent = new Intent(context, GeofenceTransitionsIntentService.class);
-        return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     @Override
@@ -261,6 +236,31 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     public void onComplete(@NonNull Task<Void> task) {
         pendingGeofenceTask = PendingGeofenceTask.NONE;
         Log.d(TAG, "on Complete");
+    }
+
+    private void performPendingGeofenceTask() {
+        if (pendingGeofenceTask == PendingGeofenceTask.ADD) {
+            addGeofences();
+        }
+    }
+
+    private void addGeofences() {
+        checkLocationPermission();
+        geofencingClient.addGeofences(getGeofencingRequest(), getGeofencesPendingIntent()).addOnCompleteListener(this);
+    }
+
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.addGeofences(geofences);
+        return builder.build();
+    }
+
+    private PendingIntent getGeofencesPendingIntent() {
+        if (geofencePendingIntent != null) {
+            return geofencePendingIntent;
+        }
+        Intent intent = new Intent(context, GeofenceTransitionsIntentService.class);
+        return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private void updateLocationUI() {
@@ -388,7 +388,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         Map<String, LatLng> truckParkingSpaces = new HashMap<>();
         truckParkingSpaces.put("HTWG", new LatLng(47.668110, 9.169001));
 
-
         ParkingLot parkingLotHtwgKonstanz = new ParkingLot(
                 new LatLng(47.668340, 9.169379),
                 new LatLng(47.667807, 9.169234),
@@ -413,7 +412,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         performPendingGeofenceTask();
     }
 
-
     private enum PendingGeofenceTask {
         ADD, REMOVE, NONE
     }
@@ -430,7 +428,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onMapsFragmentInteraction(Object o);
+        void onFragmentInteraction(Uri uri);
     }
 
 }

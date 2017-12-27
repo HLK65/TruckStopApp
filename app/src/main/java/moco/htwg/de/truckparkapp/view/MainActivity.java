@@ -38,12 +38,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        Fragment fragment = MapsFragment.newInstance(); //Default Fragment (app start)
+        //Default Fragment (app start)
+        Fragment fragment = MapsFragment.newInstance();
         fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.content, fragment)
                 .commit();
-
     }
 
     @Override
@@ -55,13 +55,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
         }
     }
-
-    /*@Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }*/
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -98,12 +91,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onFragmentInteraction(Uri uri) {
-        Log.d("onFragmentInteraction", "onFragmentInteraction: " + uri);
-        //todo
-    }
-
-    @Override
-    public void onMapsFragmentInteraction(Object o) {
-        Log.d(TAG, "onMapsFragmentInteraction: " + o);
+        Log.d(TAG, "onFragmentInteraction: " + uri);
+        Log.w(TAG, "onFragmentInteraction: No Action Implemented!");
     }
 }
