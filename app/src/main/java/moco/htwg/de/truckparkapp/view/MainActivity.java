@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     .commit();
             item.setChecked(true);
         } else {
-            Snackbar.make(findViewById(android.R.id.content), "Menu Item " + item.getTitle() + " pressed", Snackbar.LENGTH_LONG)
+            Snackbar.make(findViewById(android.R.id.content), "Menu Item " + item.getTitle() + " pressed but not implemented", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
 
