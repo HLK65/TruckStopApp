@@ -19,9 +19,9 @@
             android:icon="@drawable/ic_menu_manage"
             android:title="@string/action_settings" />
         <item
-            android:id="@+id/nav_firebase"
+            android:id="@+id/nav_firestore"
             android:icon="@android:drawable/stat_sys_warning"
-            android:title="Firebase" />
+            android:title="Firestore" />
         <item
             android:id="@+id/nav_test"
             android:icon="@android:drawable/stat_sys_warning"
