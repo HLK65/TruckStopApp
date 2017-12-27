@@ -74,6 +74,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     public static float DEFAULT_ZOOM = 17.0f;
     private final String TAG = this.getClass().getSimpleName();
     private GoogleMap map;
+    private MapView mapView;
     private boolean locationPermissionGranted;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Location lastKnownPosition;
@@ -89,6 +90,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     private Map<String, ParkingLot> mockParkingLotsDatabase;
     private Context context;
     private MapsFragment.OnFragmentInteractionListener mListener;
+    private TextView enteredTruckParkSlotIndicator;
 
     public MapsFragment() {
         // Required empty public constructor
@@ -126,9 +128,11 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
         settingsClient = LocationServices.getSettingsClient(context);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        MapView mapView = view.findViewById(R.id.map);
+        mapView = view.findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+
+        enteredTruckParkSlotIndicator = view.findViewById(R.id.entered_truck_park_slot_indicator);
 
         createLocationCallback();
         createLocationRequest();
@@ -214,7 +218,25 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     @Override
     public void onResume() {
         super.onResume();
+        mapView.onResume();
+    }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
     }
 
     /**
@@ -296,8 +318,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
     private void createLocationCallback() {
         locationCallback = new LocationCallback() {
-            final TextView enteredTruckParkSlotIndicator = getActivity().findViewById(R.id.entered_truck_park_slot_indicator);
-
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
