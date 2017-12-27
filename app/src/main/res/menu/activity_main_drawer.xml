@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_menu"
     tools:showIn="navigation_view">
 
     <group
@@ -8,12 +9,13 @@
         android:checkableBehavior="single">
         <item
             android:id="@+id/nav_map"
+            android:checked="true"
             android:icon="@drawable/ic_menu_map"
             android:title="@string/menu_map" />
     </group>
     <group
         android:id="@+id/nav_group_settings"
-        android:checkableBehavior="none">
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_menu_manage"

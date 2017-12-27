@@ -27,7 +27,7 @@
 
     <include
         android:id="@+id/content"
-        layout="@layout/activity_maps"
+        layout="@layout/content_main"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_weight="1"

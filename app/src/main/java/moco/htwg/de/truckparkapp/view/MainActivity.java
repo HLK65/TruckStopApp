@@ -15,7 +15,7 @@ import android.view.MenuItem;
 
 import moco.htwg.de.truckparkapp.R;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, FirestoreFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MapsFragment.OnFragmentInteractionListener, FirestoreFragment.OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,19 +24,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        Fragment fragment = FirestoreFragment.newInstance();
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.content, fragment)
+                .commit();
+
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -51,41 +58,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }*/
 
-
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+        Fragment fragment = null;
 
-        Snackbar.make(findViewById(android.R.id.content), "Menu Item " + item.getTitle() + " pressed", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
-
+        // Handle Action
         if (id == R.id.nav_map) {
-            // Handle the map action
-//            Fragment mapsFragment = new Fragment(); todo
-
-            FragmentManager fragmentManager = getFragmentManager();
-            fragmentManager.beginTransaction()
-//                    .replace(R.id.content, mapsFragment) todo
-                    .commit();
+            fragment = MapsFragment.newInstance();
         } else if (id == R.id.nav_settings) {
-            // Handle the settings action
-
+            // todo
         } else if (id == R.id.nav_firestore) {
-            // Handle the firebase action
-            Fragment firestoreFragment = FirestoreFragment.newInstance();
-
-            FragmentManager fragmentManager = getFragmentManager();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.content, firestoreFragment)
-                    .commit();
+            fragment = FirestoreFragment.newInstance();
         } else if (id == R.id.nav_test) {
-            // Handle the test action
-
+            // todo
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (fragment != null) {
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.content, fragment)
+                    .commit();
+            item.setChecked(true);
+        } else {
+            Snackbar.make(findViewById(android.R.id.content), "Menu Item " + item.getTitle() + " pressed", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+        }
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

@@ -1,7 +1,6 @@
 package moco.htwg.de.truckparkapp.view;
 
 
-
 import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.app.PendingIntent;
@@ -11,18 +10,19 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
+import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.google.android.gms.common.api.ApiException;
@@ -41,8 +41,8 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
@@ -61,25 +61,23 @@ import moco.htwg.de.truckparkapp.R;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
 
+/**
+ * A simple {@link Fragment} subclass.
+ * Activities that contain this fragment must implement the
+ * {@link MapsFragment.OnFragmentInteractionListener} interface
+ * to handle interaction events.
+ * Use the {@link MapsFragment#newInstance} factory method to
+ * create an instance of this fragment.
+ */
+public class MapsFragment extends Fragment implements OnMapReadyCallback, OnCompleteListener<Void> {
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, OnCompleteListener<Void> {
-
-
-
-    private enum PendingGeofenceTask {
-        ADD, REMOVE, NONE
-    }
-
-    private static final String TAG = MapsActivity.class.getSimpleName();
-
-
-
+    private static final String TAG = MapsFragment.class.getSimpleName();
+    public static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    public static float DEFAULT_ZOOM = 17.0f;
     private GoogleMap map;
     private boolean locationPermissionGranted;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Location lastKnownPosition;
-    public static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    public static float DEFAULT_ZOOM = 17.0f;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private LocationSettingsRequest locationSettingsRequest;
@@ -90,18 +88,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private PendingGeofenceTask pendingGeofenceTask = PendingGeofenceTask.NONE;
     private Polygon parkingLot;
     private Map<String, ParkingLot> mockParkingLotsDatabase;
+    private Context context;
+    private MapsFragment.OnFragmentInteractionListener mListener;
+
+    public MapsFragment() {
+        // Required empty public constructor
+    }
+
+    /**
+     * Use this factory method to create a new instance of
+     * this fragment using the provided parameters.
+     * <p>
+     * //@param param1 Parameter 1.
+     * //@param param2 Parameter 2.
+     *
+     * @return A new instance of fragment MapsFragment.
+     */
+    public static MapsFragment newInstance(/*String param1, String param2*/) {
+        MapsFragment fragment = new MapsFragment();
+        /*Bundle args = new Bundle();
+        args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_PARAM2, param2);
+        fragment.setArguments(args);*/
+        return fragment;
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
+    }
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        settingsClient = LocationServices.getSettingsClient(this);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_maps, container, false);
+        context = view.getContext();
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
+        settingsClient = LocationServices.getSettingsClient(context);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        MapView mapView = (MapView) view.findViewById(R.id.map);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
 
         createLocationCallback();
         createLocationRequest();
@@ -109,17 +137,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         geofences = new ArrayList<>();
         mockParkingLotsDatabase = new HashMap<>();
 
-        geofencingClient = LocationServices.getGeofencingClient(this);
-        LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
+        geofencingClient = LocationServices.getGeofencingClient(context);
+        LocalBroadcastManager.getInstance(context).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if(intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")){
+                if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")) {
 
                     PolygonOptions polygonOptions = mockParkingLotsDatabase.get(intent.getStringExtra("PARKING_LOT_ID")).getPolygonOptions();
-                    if(polygonOptions != null){
+                    if (polygonOptions != null) {
                         parkingLot = map.addPolygon(polygonOptions);
                     }
-                } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")){
+                } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")) {
 
                     parkingLot = null;
 
@@ -127,6 +155,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         }, new IntentFilter(GeofenceTransitionsIntentService.PARKING_BROADCAST));
+
+
+        // Inflate the layout for this fragment
+        return view;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof MapsFragment.OnFragmentInteractionListener) {
+            mListener = (MapsFragment.OnFragmentInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
     }
 
     @Override
@@ -139,7 +188,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void performPendingGeofenceTask() {
-        if(pendingGeofenceTask == PendingGeofenceTask.ADD){
+        if (pendingGeofenceTask == PendingGeofenceTask.ADD) {
             addGeofences();
         }
     }
@@ -156,20 +205,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private PendingIntent getGeofencesPendingIntent() {
-        if(geofencePendingIntent != null){
+        if (geofencePendingIntent != null) {
             return geofencePendingIntent;
         }
-        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
-        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent intent = new Intent(context, GeofenceTransitionsIntentService.class);
+        return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-
     @Override
-    protected void onResume(){
+    public void onResume() {
         super.onResume();
 
     }
-
 
     /**
      * Manipulates the map once available.
@@ -205,30 +252,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         map.getUiSettings().setZoomControlsEnabled(true);
     }
 
-    private void getDeviceLocation(){
+    private void getDeviceLocation() {
         try {
-            if(locationPermissionGranted) {
+            if (locationPermissionGranted) {
                 checkLocationPermission();
             }
             Task<Location> locationResult = fusedLocationProviderClient.getLastLocation();
-            locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
+            locationResult.addOnCompleteListener(getActivity(), new OnCompleteListener<Location>() {
                 @Override
                 public void onComplete(@NonNull Task<Location> task) {
-                    if(task.isSuccessful() && task.getResult() != null){
+                    if (task.isSuccessful() && task.getResult() != null) {
                         lastKnownPosition = task.getResult();
                         map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()), DEFAULT_ZOOM));
-
-
                     }
                 }
             });
 
-        } catch (SecurityException e){
+        } catch (SecurityException e) {
             Log.e(TAG, "getDeviceLocation", e);
         }
     }
 
-    private void buildLocationSettingRequest(){
+    private void buildLocationSettingRequest() {
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
         builder.addLocationRequest(locationRequest);
         locationSettingsRequest = builder.build();
@@ -250,20 +295,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
-    private void createLocationCallback(){
+    private void createLocationCallback() {
         locationCallback = new LocationCallback() {
-            final TextView enteredTruckParkSlotIndicator = findViewById(R.id.entered_truck_park_slot_indicator);
+            final TextView enteredTruckParkSlotIndicator = getActivity().findViewById(R.id.entered_truck_park_slot_indicator);
+
             @Override
-            public void onLocationResult(LocationResult locationResult){
+            public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 Location location = locationResult.getLastLocation();
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(),location.getLongitude()), DEFAULT_ZOOM));
-                if(parkingLot != null){
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM));
+                if (parkingLot != null) {
                     boolean containsLocation = PolyUtil.containsLocation(new LatLng(location.getLatitude(), location.getLongitude()), parkingLot.getPoints(), true);
-                    if(containsLocation) {
+                    if (containsLocation) {
                         //TODO inkrement value in database
                         enteredTruckParkSlotIndicator.setVisibility(View.VISIBLE);
-                    } else if (!containsLocation){
+                    } else if (!containsLocation) {
                         //TODO dekrement value in database
                         enteredTruckParkSlotIndicator.setVisibility(View.INVISIBLE);
                     }
@@ -272,25 +318,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         };
     }
 
-    private void startLocationUpdates(){
+    private void startLocationUpdates() {
         settingsClient.checkLocationSettings(locationSettingsRequest)
-            .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
-                @SuppressLint("MissingPermission")
-                @Override
-                public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                    Log.i(TAG, "location settings successful checked");
-                    checkLocationPermission();
-                    fusedLocationProviderClient.requestLocationUpdates(locationRequest,locationCallback, Looper.myLooper());
-                }
-        }).addOnFailureListener(this, new OnFailureListener() {
+                .addOnSuccessListener(getActivity(), new OnSuccessListener<LocationSettingsResponse>() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                        Log.i(TAG, "location settings successful checked");
+                        checkLocationPermission();
+                        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
+                    }
+                }).addOnFailureListener(getActivity(), new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 int statusCode = ((ApiException) e).getStatusCode();
-                switch(statusCode) {
+                switch (statusCode) {
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         try {
                             ResolvableApiException resolvableApiException = (ResolvableApiException) e;
-                            resolvableApiException.startResolutionForResult(MapsActivity.this, 0x1);
+                            resolvableApiException.startResolutionForResult(getActivity(), 0x1);
                             Log.i(TAG, "resolved resolution required error");
                         } catch (IntentSender.SendIntentException e1) {
                             Log.i(TAG, "unable to resolve error");
@@ -302,26 +348,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-
-
     private void checkLocationPermission() {
     /*
      * Request location permission, so that we can get the location of the
      * device. The result of the permission request is handled by a callback,
      * onRequestPermissionsResult.
      */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+        if (ContextCompat.checkSelfPermission(context.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationPermissionGranted = true;
         } else {
-            ActivityCompat.requestPermissions(this,
+            ActivityCompat.requestPermissions(getActivity(),
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
     }
 
-    private void getGeofencesFromDatabase(){
+    private void getGeofencesFromDatabase() {
         Map<String, LatLng> truckParkingSpaces = new HashMap<>();
         truckParkingSpaces.put("HTWG", new LatLng(47.668110, 9.169001));
 
@@ -335,12 +379,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         parkingLotHtwgKonstanz.setName("HTWG");
         mockParkingLotsDatabase.put(parkingLotHtwgKonstanz.getName(), parkingLotHtwgKonstanz);
 
-        for(Map.Entry<String, LatLng> truckParkingSpace : truckParkingSpaces.entrySet()){
+        for (Map.Entry<String, LatLng> truckParkingSpace : truckParkingSpaces.entrySet()) {
             geofences.add(new Geofence.Builder()
                     .setRequestId(truckParkingSpace.getKey())
                     .setCircularRegion(
-                        truckParkingSpace.getValue().latitude,
-                        truckParkingSpace.getValue().longitude, 200)
+                            truckParkingSpace.getValue().latitude,
+                            truckParkingSpace.getValue().longitude, 200)
                     .setExpirationDuration(Geofence.NEVER_EXPIRE)
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
                     .setLoiteringDelay(10000)
@@ -348,6 +392,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         pendingGeofenceTask = PendingGeofenceTask.ADD;
         performPendingGeofenceTask();
+    }
+
+
+    private enum PendingGeofenceTask {
+        ADD, REMOVE, NONE
+    }
+
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p>
+     * See the Android Training lesson <a href=
+     * "http://developer.android.com/training/basics/fragments/communicating.html"
+     * >Communicating with Other Fragments</a> for more information.
+     */
+    public interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        void onFragmentInteraction(Uri uri);
     }
 
 }
