@@ -12,6 +12,11 @@
             android:checked="true"
             android:icon="@drawable/ic_menu_map"
             android:title="@string/menu_map" />
+        <item
+            android:id="@+id/nav_destination"
+            android:checked="false"
+            android:icon="@drawable/ic_menu_send"
+            android:title="@string/menu_destination" />
     </group>
     <group
         android:id="@+id/nav_group_settings"

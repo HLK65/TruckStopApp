@@ -65,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle Action
         if (id == R.id.nav_map) {
             fragment = MapsFragment.newInstance();
+        } else if (id == R.id.nav_destination){
+            fragment = DestinationFragment.newInstance();
         } else if (id == R.id.nav_settings) {
             // todo
         } else if (id == R.id.nav_firestore) {

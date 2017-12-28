@@ -326,10 +326,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                 if (parkingLot != null) {
                     boolean containsLocation = PolyUtil.containsLocation(new LatLng(location.getLatitude(), location.getLongitude()), parkingLot.getPoints(), true);
                     if (containsLocation) {
-                        //TODO inkrement value in database
+                        //TODO increment value in database
                         enteredTruckParkSlotIndicator.setVisibility(View.VISIBLE);
                     } else if (!containsLocation) {
-                        //TODO dekrement value in database
+                        //TODO decrement value in database
                         enteredTruckParkSlotIndicator.setVisibility(View.INVISIBLE);
                     }
                 }
