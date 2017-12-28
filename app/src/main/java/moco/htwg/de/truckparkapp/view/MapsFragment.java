@@ -46,12 +46,19 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.maps.DirectionsApi;
+import com.google.maps.DirectionsApiRequest;
+import com.google.maps.GeoApiContext;
 import com.google.maps.android.PolyUtil;
+import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.TravelMode;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -93,6 +100,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     private MapsFragment.OnFragmentInteractionListener mListener;
     private TextView enteredTruckParkSlotIndicator;
 
+    private String destinationStreet;
+    private String destinationPlace;
+
+
     public MapsFragment() {
         // Required empty public constructor
     }
@@ -106,12 +117,19 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
      *
      * @return A new instance of fragment MapsFragment.
      */
-    public static MapsFragment newInstance(/*String param1, String param2*/) {
+    public static MapsFragment newInstance() {
         MapsFragment fragment = new MapsFragment();
-        /*Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);*/
+
+        return fragment;
+    }
+
+    public static MapsFragment newInstance(String destinationStreet, String destinationPostal, String destinationPlace){
+        MapsFragment fragment = new MapsFragment();
+        Bundle args = new Bundle();
+        args.putString("destinationStreet", destinationStreet);
+        args.putString("destinationPostal", destinationPostal);
+        args.putString("destinationPlace", destinationPlace);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -140,6 +158,16 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         buildLocationSettingRequest();
         geofences = new ArrayList<>();
         mockParkingLotsDatabase = new HashMap<>();
+
+        if(getArguments() != null){
+            Bundle bundle = getArguments();
+            destinationStreet = bundle.getString("destinationStreet");
+            String destinationPostal = bundle.getString("destinationPostal");
+            destinationPlace = bundle.getString("destinationPlace");
+        }
+
+
+
 
         geofencingClient = LocationServices.getGeofencingClient(context);
         LocalBroadcastManager.getInstance(context).registerReceiver(new BroadcastReceiver() {
@@ -230,6 +258,29 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         getDeviceLocation();
         startLocationUpdates();
         getGeofencesFromDatabase();
+
+        if(destinationPlace != null && destinationStreet != null){
+            try {
+                DirectionsApiRequest directionsApiRequest = DirectionsApi.newRequest(getGeoApiContext());
+                directionsApiRequest.mode(TravelMode.DRIVING);
+                if(lastKnownPosition == null){
+                    directionsApiRequest.origin(new com.google.maps.model.LatLng(47.6681, 9.1687));
+                } else {
+                    directionsApiRequest.origin(new com.google.maps.model.LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()));
+                }
+                directionsApiRequest.destination(destinationStreet+","+destinationPlace);
+                DirectionsResult result = directionsApiRequest.await();
+                addRouteToMap(result, map);
+
+            } catch (com.google.maps.errors.ApiException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     @Override
@@ -429,6 +480,18 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    private GeoApiContext getGeoApiContext() {
+        GeoApiContext.Builder geoApiContext = new GeoApiContext.Builder();
+        geoApiContext.apiKey(getString(R.string.google_api_key));
+
+        return geoApiContext.build();
+    }
+
+    private void addRouteToMap(DirectionsResult result, GoogleMap map){
+        List<LatLng> path = PolyUtil.decode(result.routes[0].overviewPolyline.getEncodedPath());
+        map.addPolyline(new PolylineOptions().addAll(path));
     }
 
 }

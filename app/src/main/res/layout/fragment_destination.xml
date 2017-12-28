@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <EditText
+        android:id="@+id/destination_street"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="154dp"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="@string/destination_street" />
+
+    <EditText
+        android:id="@+id/destination_place"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/destination_street"
+        android:layout_below="@+id/destination_street"
+        android:layout_marginTop="50dp"
+        android:ems="10"
+        android:inputType="textPostalAddress"
+        android:text="@string/destination_place" />
+
+    <EditText
+        android:id="@+id/destination_postal_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/destination_place"
+        android:layout_below="@+id/destination_place"
+        android:ems="10"
+        android:inputType="number"
+        android:text="@string/destination_postal_number" />
+
+    <Button
+        android:id="@+id/button_destination_get_route"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/destination_postal_number"
+        android:layout_below="@+id/destination_postal_number"
+        android:text="@string/destination_get_route" />
+</RelativeLayout>

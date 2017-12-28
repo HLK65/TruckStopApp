@@ -12,6 +12,13 @@
     <string name="menu_map">Map</string>
     <string name="menu_destination">Ziel</string>
 
+    <!-- Destination Fragment -->
+    <string name="destination_street">Straße</string>
+    <string name="destination_postal_number">Postleitzahl</string>
+    <string name="destination_place">Ort</string>
+    <string name="destination_get_route">Route berechnen</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>
