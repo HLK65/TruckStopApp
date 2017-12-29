@@ -1,4 +1,4 @@
-package moco.htwg.de.truckparkapp.database;
+package moco.htwg.de.truckparkapp.persistence;
 
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package moco.htwg.de.truckparkapp.database;
+package moco.htwg.de.truckparkapp.persistence;
 
 /**
  * Created by Sebastian Thümmel on 29.12.2017.

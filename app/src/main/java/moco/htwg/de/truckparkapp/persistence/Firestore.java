@@ -1,8 +1,7 @@
-package moco.htwg.de.truckparkapp.database;
+package moco.htwg.de.truckparkapp.persistence;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -15,10 +14,8 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import moco.htwg.de.truckparkapp.R;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 
 /**
@@ -58,7 +55,7 @@ public class Firestore implements Database {
                         for (DocumentSnapshot document : task.getResult()) {
                             ParkingLot newParkinglot = document.toObject(ParkingLot.class);
                             parkingLotMap.put(newParkinglot.getName(), newParkinglot);
-                            getRealtimeUpdates("parkingLots", document.getId());
+                            getRealtimeUpdates("parkingLots", document.getId(), parkingLotMap);
                         }
                     } else {
                         Log.w(TAG, "Error getting documents: ", task.getException());
@@ -68,7 +65,7 @@ public class Firestore implements Database {
         return parkingLotMap;
     }
 
-    private void getRealtimeUpdates(String collection, String document){
+    private void getRealtimeUpdates(String collection, String document, final Map<String, ParkingLot> parkingLotMap){
         final DocumentReference documentReference = firebaseFirestore.collection(collection).document(document);
         documentReference.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
@@ -77,9 +74,11 @@ public class Firestore implements Database {
                     Log.w(TAG, "Listen failed", e);
                 }
                 if(documentSnapshot != null && documentSnapshot.exists()){
-                    Log.d(TAG, "Current Data: " + documentSnapshot.toObject(ParkingLot.class).toString());
+                    ParkingLot updatedParkingLot = documentSnapshot.toObject(ParkingLot.class);
+                    parkingLotMap.put(updatedParkingLot.getName(), updatedParkingLot);
+                    Log.d(TAG, "Updated Data: " + updatedParkingLot.toString());
                 } else {
-                    Log.d(TAG, "Current Data: null");
+                    Log.d(TAG, "Updated Data: null");
                 }
             }
         });

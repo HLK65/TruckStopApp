@@ -65,8 +65,8 @@ import java.util.List;
 import java.util.Map;
 
 import moco.htwg.de.truckparkapp.R;
-import moco.htwg.de.truckparkapp.database.Database;
-import moco.htwg.de.truckparkapp.database.DatabaseFactory;
+import moco.htwg.de.truckparkapp.persistence.Database;
+import moco.htwg.de.truckparkapp.persistence.DatabaseFactory;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
 
