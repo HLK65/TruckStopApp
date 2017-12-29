@@ -65,6 +65,8 @@ import java.util.List;
 import java.util.Map;
 
 import moco.htwg.de.truckparkapp.R;
+import moco.htwg.de.truckparkapp.database.Database;
+import moco.htwg.de.truckparkapp.database.DatabaseFactory;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
 
@@ -103,6 +105,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     private String destinationStreet;
     private String destinationPlace;
 
+    private Database database;
+
 
     public MapsFragment() {
         // Required empty public constructor
@@ -118,9 +122,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
      * @return A new instance of fragment MapsFragment.
      */
     public static MapsFragment newInstance() {
-        MapsFragment fragment = new MapsFragment();
-
-        return fragment;
+        return new MapsFragment();
     }
 
     public static MapsFragment newInstance(String destinationStreet, String destinationPostal, String destinationPlace){
@@ -166,8 +168,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
             destinationPlace = bundle.getString("destinationPlace");
         }
 
-
-
+        database = DatabaseFactory.getDatabase(DatabaseFactory.Type.FIRESTORE);
+        database.getParkingLots();
 
         geofencingClient = LocationServices.getGeofencingClient(context);
         LocalBroadcastManager.getInstance(context).registerReceiver(new BroadcastReceiver() {
