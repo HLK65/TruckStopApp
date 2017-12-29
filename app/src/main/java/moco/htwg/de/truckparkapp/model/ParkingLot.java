@@ -70,4 +70,14 @@ public class ParkingLot {
     public void setParkingLotsOccupied(int parkingLotsOccupied) {
         this.parkingLotsOccupied = parkingLotsOccupied;
     }
+
+    @Override
+    public String toString() {
+        return "ParkingLot{" +
+                "name='" + name + '\'' +
+                ", polygonOptions=" + polygonOptions +
+                ", maxParkingLots=" + maxParkingLots +
+                ", parkingLotsOccupied=" + parkingLotsOccupied +
+                '}';
+    }
 }

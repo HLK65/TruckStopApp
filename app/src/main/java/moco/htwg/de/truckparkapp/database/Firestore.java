@@ -9,7 +9,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
@@ -56,6 +58,7 @@ public class Firestore implements Database {
                         for (DocumentSnapshot document : task.getResult()) {
                             ParkingLot newParkinglot = document.toObject(ParkingLot.class);
                             parkingLotMap.put(newParkinglot.getName(), newParkinglot);
+                            getRealtimeUpdates("parkingLots", document.getId());
                         }
                     } else {
                         Log.w(TAG, "Error getting documents: ", task.getException());
@@ -63,6 +66,23 @@ public class Firestore implements Database {
                 }
             });
         return parkingLotMap;
+    }
+
+    private void getRealtimeUpdates(String collection, String document){
+        final DocumentReference documentReference = firebaseFirestore.collection(collection).document(document);
+        documentReference.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
+                if ( e != null){
+                    Log.w(TAG, "Listen failed", e);
+                }
+                if(documentSnapshot != null && documentSnapshot.exists()){
+                    Log.d(TAG, "Current Data: " + documentSnapshot.toObject(ParkingLot.class).toString());
+                } else {
+                    Log.d(TAG, "Current Data: null");
+                }
+            }
+        });
     }
 
 }
