@@ -58,6 +58,7 @@ public class Firestore implements Database {
                 }
                 if(documentSnapshot != null && documentSnapshot.exists()){
                     ParkingLot updatedParkingLot = documentSnapshot.toObject(ParkingLot.class);
+                    updatedParkingLot.setDocumentId(documentSnapshot.getId());
                     parkingLotMap.put(updatedParkingLot.getName(), updatedParkingLot);
                     Log.d(TAG, "Updated Data: " + updatedParkingLot.toString());
                 } else {
@@ -65,6 +66,11 @@ public class Firestore implements Database {
                 }
             }
         });
+    }
+
+    @Override
+    public void updateParkingLot(ParkingLot parkingLot) {
+        firebaseFirestore.collection("parkingLots").document(parkingLot.getDocumentId()).set(parkingLot);
     }
 
 }

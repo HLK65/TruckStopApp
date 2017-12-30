@@ -19,27 +19,33 @@ public class ParkingLot {
 
     private List<LatLng> parkingLotDimensions;
 
-    private int maxParkingLots;
+    private List<String> devicesAtParkingArea;
 
-    private int parkingLotsOccupied;
+    private int maxParkingLots;
 
     private LatLng geofencePosition;
 
-    public ParkingLot(String name, List<LatLng> parkingLotDimensions, int maxParkingLots, int parkingLotsOccupied, LatLng geofencePosition) {
+    private String documentId;
+
+    public ParkingLot(String name, List<LatLng> parkingLotDimensions, int maxParkingLots, LatLng geofencePosition) {
         this.name = name;
         this.parkingLotDimensions = parkingLotDimensions;
         this.maxParkingLots = maxParkingLots;
-        this.parkingLotsOccupied = parkingLotsOccupied;
         this.geofencePosition = geofencePosition;
     }
 
-    public ParkingLot(){}
+    public ParkingLot(){
+        this.devicesAtParkingArea = new ArrayList<>();
+        this.parkingLotDimensions = new ArrayList<>();
+    }
 
     public ParkingLot(LatLng... latLngs){
+        this.devicesAtParkingArea = new ArrayList<>();
         this.parkingLotDimensions = Arrays.asList(latLngs);
     }
 
     public ParkingLot( int maxParkingLots, LatLng... latLngs){
+        this.devicesAtParkingArea = new ArrayList<>();
         this.parkingLotDimensions = Arrays.asList(latLngs);
         this.maxParkingLots = maxParkingLots;
     }
@@ -71,14 +77,6 @@ public class ParkingLot {
         this.maxParkingLots = maxParkingLots;
     }
 
-    public int getParkingLotsOccupied() {
-        return parkingLotsOccupied;
-    }
-
-    public void setParkingLotsOccupied(int parkingLotsOccupied) {
-        this.parkingLotsOccupied = parkingLotsOccupied;
-    }
-
     public LatLng getGeofencePosition() {
         return geofencePosition;
     }
@@ -100,13 +98,40 @@ public class ParkingLot {
         return returnList;
     }
 
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+
+    public List<String> getDevicesAtParkingArea() {
+        return devicesAtParkingArea;
+    }
+
+    public void setDevicesAtParkingArea(List<String> devicesAtParkingArea) {
+        this.devicesAtParkingArea = devicesAtParkingArea;
+    }
+
+    public void addDeviceToParkingLot(String deviceId){
+        if(!this.devicesAtParkingArea.contains(deviceId)){
+            this.devicesAtParkingArea.add(deviceId);
+        }
+    }
+
+    public void removeDeviceFromParkingLot(String deviceId){
+        if(this.devicesAtParkingArea.contains(deviceId)){
+            this.devicesAtParkingArea.remove(deviceId);
+        }
+    }
+
     @Override
     public String toString() {
         return "ParkingLot{" +
                 "name='" + name + '\'' +
                 ", parkingLotDimensions=" + parkingLotDimensions +
                 ", maxParkingLots=" + maxParkingLots +
-                ", parkingLotsOccupied=" + parkingLotsOccupied +
                 ", geofencePosition=" + geofencePosition +
                 '}';
     }

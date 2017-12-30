@@ -14,7 +14,6 @@ import com.google.maps.model.TravelMode;
 import java.io.IOException;
 import java.util.List;
 
-import moco.htwg.de.truckparkapp.R;
 
 /**
  * Created by Sebastian Thümmel on 29.12.2017.

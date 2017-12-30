@@ -17,6 +17,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -106,6 +107,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
     private DirectionApi directionApi;
     private TruckParkLot truckParkLot;
+    private ParkingLot parkingLot;
 
     public MapsFragment() {
         // Required empty public constructor
@@ -176,14 +178,17 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")) {
-                    ParkingLot parkingLot = truckParkLot.getParkingLots().get(intent.getStringExtra("PARKING_LOT_ID"));
+                    parkingLot = truckParkLot.getParkingLots().get(intent.getStringExtra("PARKING_LOT_ID"));
                     if(parkingLot != null){
                         PolygonOptions polygonOptions = new PolygonOptions();
                         polygonOptions.addAll(parkingLot.getLatLngForPolygonOptions());
                         parkingLotPolygon = map.addPolygon(polygonOptions);
                     }
                 } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")) {
-
+                    if(parkingLot != null){
+                        parkingLot.removeDeviceFromParkingLot(Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID));
+                        truckParkLot.updateParkingLot(parkingLot);
+                    }
                     parkingLotPolygon = null;
 
                 }
@@ -365,12 +370,14 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                 if (parkingLotPolygon != null) {
                     boolean containsLocation = PolyUtil.containsLocation(new LatLng(location.getLatitude(), location.getLongitude()), parkingLotPolygon.getPoints(), true);
                     if (containsLocation) {
-                        //TODO increment value in database
+                        //TODO think about a more anonymous way to identify a device (e.g. uuid)
+                        parkingLot.addDeviceToParkingLot(Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID));
                         enteredTruckParkSlotIndicator.setVisibility(View.VISIBLE);
+                        truckParkLot.updateParkingLot(parkingLot);
                     } else if (!containsLocation) {
-                        //TODO decrement value in database
                         enteredTruckParkSlotIndicator.setVisibility(View.INVISIBLE);
                     }
+
                 }
             }
         };
@@ -443,7 +450,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                 .setLoiteringDelay(10000)
                 .build();
         parkingLotHtwgKonstanz.setGeofencePosition(new com.google.maps.model.LatLng(47.668110, 9.169001));
-        parkingLotHtwgKonstanz.setParkingLotsOccupied(2);
         truckParkLot.addParkingLot(parkingLotHtwgKonstanz);
         truckParkLot.saveNewParkingLot(parkingLotHtwgKonstanz);
         //database.addParkingLot(parkingLotHtwgKonstanz);

@@ -17,5 +17,6 @@ public interface Database {
     void addParkingLot(ParkingLot parkingLot);
     Task<QuerySnapshot> getParkingLots(String collection);
     void getRealtimeUpdates(String collection, String document, final Map<String, ParkingLot> parkingLotMap);
+    void updateParkingLot(ParkingLot parkingLot);
 
 }
