@@ -1,9 +1,13 @@
 package moco.htwg.de.truckparkapp.model;
 
-import android.graphics.Color;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.PolygonOptions;
+
+
+import com.google.maps.model.LatLng;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by Sebastian Thümmel on 23.12.2017.
@@ -13,31 +17,40 @@ public class ParkingLot {
 
     private String name;
 
-    private PolygonOptions polygonOptions;
+    private List<LatLng> parkingLotDimensions;
 
     private int maxParkingLots;
 
     private int parkingLotsOccupied;
 
+    private LatLng geofencePosition;
+
+    public ParkingLot(String name, List<LatLng> parkingLotDimensions, int maxParkingLots, int parkingLotsOccupied, LatLng geofencePosition) {
+        this.name = name;
+        this.parkingLotDimensions = parkingLotDimensions;
+        this.maxParkingLots = maxParkingLots;
+        this.parkingLotsOccupied = parkingLotsOccupied;
+        this.geofencePosition = geofencePosition;
+    }
+
     public ParkingLot(){}
 
     public ParkingLot(LatLng... latLngs){
-        this.polygonOptions = new PolygonOptions().add(latLngs);
+        this.parkingLotDimensions = Arrays.asList(latLngs);
     }
 
     public ParkingLot( int maxParkingLots, LatLng... latLngs){
-        this.polygonOptions = new PolygonOptions().add(latLngs);
+        this.parkingLotDimensions = Arrays.asList(latLngs);
         this.maxParkingLots = maxParkingLots;
     }
 
-    public void showParkingLotOnMap(int color){
-        polygonOptions.strokeColor(color);
+    public List<LatLng> getParkingLotDimensions() {
+        return parkingLotDimensions;
     }
 
-    public void hideParkingLotOnMap(){
-        polygonOptions.visible(false);
+    public void setParkingLotDimensions(List<LatLng> parkingLotDimensions) {
+        this.parkingLotDimensions = parkingLotDimensions;
     }
-
 
     public String getName() {
         return name;
@@ -47,13 +60,8 @@ public class ParkingLot {
         this.name = name;
     }
 
-    public PolygonOptions getPolygonOptions() {
-        return polygonOptions;
-    }
 
-    public void setPolygonOptions(PolygonOptions polygonOptions) {
-        this.polygonOptions = polygonOptions;
-    }
+
 
     public int getMaxParkingLots() {
         return maxParkingLots;
@@ -71,13 +79,35 @@ public class ParkingLot {
         this.parkingLotsOccupied = parkingLotsOccupied;
     }
 
+    public LatLng getGeofencePosition() {
+        return geofencePosition;
+    }
+
+    public void setGeofencePosition(LatLng geofencePosition) {
+        this.geofencePosition = geofencePosition;
+    }
+
+    /*
+     * necessary conversion because PolygonOptions needs latlng coordinates from type com.google.android.gms.maps.model.LatLng
+     * and this type causes problems in firestore
+     *
+     */
+    public List<com.google.android.gms.maps.model.LatLng> getLatLngForPolygonOptions(){
+        List<com.google.android.gms.maps.model.LatLng> returnList = new ArrayList<>();
+        for(LatLng latLng : this.parkingLotDimensions){
+            returnList.add(new com.google.android.gms.maps.model.LatLng(latLng.lat, latLng.lng));
+        }
+        return returnList;
+    }
+
     @Override
     public String toString() {
         return "ParkingLot{" +
                 "name='" + name + '\'' +
-                ", polygonOptions=" + polygonOptions +
+                ", parkingLotDimensions=" + parkingLotDimensions +
                 ", maxParkingLots=" + maxParkingLots +
                 ", parkingLotsOccupied=" + parkingLotsOccupied +
+                ", geofencePosition=" + geofencePosition +
                 '}';
     }
 }

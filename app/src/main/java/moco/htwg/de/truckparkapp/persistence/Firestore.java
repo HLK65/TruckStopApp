@@ -44,28 +44,11 @@ public class Firestore implements Database {
             });
     }
 
-    public Map<String, ParkingLot> getParkingLots(){
-        final Map<String, ParkingLot> parkingLotMap = new HashMap<>();
-        firebaseFirestore.collection("parkingLots")
-            .get()
-            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    if (task.isSuccessful()) {
-                        for (DocumentSnapshot document : task.getResult()) {
-                            ParkingLot newParkinglot = document.toObject(ParkingLot.class);
-                            parkingLotMap.put(newParkinglot.getName(), newParkinglot);
-                            getRealtimeUpdates("parkingLots", document.getId(), parkingLotMap);
-                        }
-                    } else {
-                        Log.w(TAG, "Error getting documents: ", task.getException());
-                    }
-                }
-            });
-        return parkingLotMap;
+    public Task<QuerySnapshot> getParkingLots(String collection){
+        return firebaseFirestore.collection(collection).get();
     }
 
-    private void getRealtimeUpdates(String collection, String document, final Map<String, ParkingLot> parkingLotMap){
+    public void getRealtimeUpdates(String collection, String document, final Map<String, ParkingLot> parkingLotMap){
         final DocumentReference documentReference = firebaseFirestore.collection(collection).document(document);
         documentReference.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override

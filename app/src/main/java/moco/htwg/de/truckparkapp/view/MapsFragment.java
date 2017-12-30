@@ -4,13 +4,15 @@ package moco.htwg.de.truckparkapp.view;
 import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.app.PendingIntent;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
+
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +20,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -45,29 +48,26 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polygon;
+
+
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.maps.DirectionsApi;
-import com.google.maps.DirectionsApiRequest;
-import com.google.maps.GeoApiContext;
-import com.google.maps.android.PolyUtil;
-import com.google.maps.model.DirectionsResult;
-import com.google.maps.model.TravelMode;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import com.google.maps.android.PolyUtil;
+
+
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import moco.htwg.de.truckparkapp.R;
-import moco.htwg.de.truckparkapp.persistence.Database;
-import moco.htwg.de.truckparkapp.persistence.DatabaseFactory;
+import moco.htwg.de.truckparkapp.direction.DirectionApi;
+import moco.htwg.de.truckparkapp.direction.DirectionApiFactory;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
+import moco.htwg.de.truckparkapp.parking.TruckParkLot;
+
 import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
 
 /**
@@ -93,11 +93,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     private LocationSettingsRequest locationSettingsRequest;
     private SettingsClient settingsClient;
     private GeofencingClient geofencingClient;
-    private List<Geofence> geofences;
+
     private PendingIntent geofencePendingIntent;
     private PendingGeofenceTask pendingGeofenceTask = PendingGeofenceTask.NONE;
-    private Polygon parkingLot;
-    private Map<String, ParkingLot> mockParkingLotsDatabase;
+    private Polygon parkingLotPolygon;
     private Context context;
     private MapsFragment.OnFragmentInteractionListener mListener;
     private TextView enteredTruckParkSlotIndicator;
@@ -105,8 +104,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     private String destinationStreet;
     private String destinationPlace;
 
-    private Database database;
-
+    private DirectionApi directionApi;
+    private TruckParkLot truckParkLot;
 
     public MapsFragment() {
         // Required empty public constructor
@@ -158,32 +157,34 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingRequest();
-        geofences = new ArrayList<>();
-        mockParkingLotsDatabase = new HashMap<>();
+
+
 
         if(getArguments() != null){
             Bundle bundle = getArguments();
             destinationStreet = bundle.getString("destinationStreet");
-            String destinationPostal = bundle.getString("destinationPostal");
+            //String destinationPostal = bundle.getString("destinationPostal");
             destinationPlace = bundle.getString("destinationPlace");
         }
 
-        database = DatabaseFactory.getDatabase(DatabaseFactory.Type.FIRESTORE);
-        database.getParkingLots();
+
+        directionApi = DirectionApiFactory.getDirectionApi(DirectionApiFactory.DirectionApiType.GOOGLE_MAPS_DIRECTION_API, getString(R.string.google_api_key));
+
 
         geofencingClient = LocationServices.getGeofencingClient(context);
         LocalBroadcastManager.getInstance(context).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")) {
-
-                    PolygonOptions polygonOptions = mockParkingLotsDatabase.get(intent.getStringExtra("PARKING_LOT_ID")).getPolygonOptions();
-                    if (polygonOptions != null) {
-                        parkingLot = map.addPolygon(polygonOptions);
+                    ParkingLot parkingLot = truckParkLot.getParkingLots().get(intent.getStringExtra("PARKING_LOT_ID"));
+                    if(parkingLot != null){
+                        PolygonOptions polygonOptions = new PolygonOptions();
+                        polygonOptions.addAll(parkingLot.getLatLngForPolygonOptions());
+                        parkingLotPolygon = map.addPolygon(polygonOptions);
                     }
                 } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")) {
 
-                    parkingLot = null;
+                    parkingLotPolygon = null;
 
                 }
 
@@ -259,30 +260,15 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         updateLocationUI();
         getDeviceLocation();
         startLocationUpdates();
-        getGeofencesFromDatabase();
-
+        truckParkLot = TruckParkLot.getInstance();
+        //addParkingLotIntoDatabase();
         if(destinationPlace != null && destinationStreet != null){
-            try {
-                DirectionsApiRequest directionsApiRequest = DirectionsApi.newRequest(getGeoApiContext());
-                directionsApiRequest.mode(TravelMode.DRIVING);
-                if(lastKnownPosition == null){
-                    directionsApiRequest.origin(new com.google.maps.model.LatLng(47.6681, 9.1687));
-                } else {
-                    directionsApiRequest.origin(new com.google.maps.model.LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()));
-                }
-                directionsApiRequest.destination(destinationStreet+","+destinationPlace);
-                DirectionsResult result = directionsApiRequest.await();
-                addRouteToMap(result, map);
-
-            } catch (com.google.maps.errors.ApiException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            if(lastKnownPosition == null){
+                directionApi.sendDirectionRequest(new LatLng(47.6681, 9.1687), destinationStreet+","+destinationPlace, map);
+            } else {
+                directionApi.sendDirectionRequest(new LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()), destinationStreet+","+destinationPlace, map);
             }
         }
-
     }
 
     @Override
@@ -304,7 +290,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-        builder.addGeofences(geofences);
+        builder.addGeofences(truckParkLot.getGeofenceList());
         return builder.build();
     }
 
@@ -376,8 +362,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                 super.onLocationResult(locationResult);
                 Location location = locationResult.getLastLocation();
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM));
-                if (parkingLot != null) {
-                    boolean containsLocation = PolyUtil.containsLocation(new LatLng(location.getLatitude(), location.getLongitude()), parkingLot.getPoints(), true);
+                if (parkingLotPolygon != null) {
+                    boolean containsLocation = PolyUtil.containsLocation(new LatLng(location.getLatitude(), location.getLongitude()), parkingLotPolygon.getPoints(), true);
                     if (containsLocation) {
                         //TODO increment value in database
                         enteredTruckParkSlotIndicator.setVisibility(View.VISIBLE);
@@ -437,20 +423,31 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         }
     }
 
-    private void getGeofencesFromDatabase() {
+    private void addParkingLotIntoDatabase() {
         Map<String, LatLng> truckParkingSpaces = new HashMap<>();
         truckParkingSpaces.put("HTWG", new LatLng(47.668110, 9.169001));
 
-        ParkingLot parkingLotHtwgKonstanz = new ParkingLot(
-                new LatLng(47.668340, 9.169379),
-                new LatLng(47.667807, 9.169234),
-                new LatLng(47.667902, 9.168608),
-                new LatLng(47.668447, 9.168759));
-        parkingLotHtwgKonstanz.showParkingLotOnMap(Color.RED);
-        parkingLotHtwgKonstanz.setName("HTWG");
-        mockParkingLotsDatabase.put(parkingLotHtwgKonstanz.getName(), parkingLotHtwgKonstanz);
 
-        for (Map.Entry<String, LatLng> truckParkingSpace : truckParkingSpaces.entrySet()) {
+        ParkingLot parkingLotHtwgKonstanz = new ParkingLot(40,
+                new com.google.maps.model.LatLng(47.668340, 9.169379),
+                new com.google.maps.model.LatLng(47.667807, 9.169234),
+                new com.google.maps.model.LatLng(47.667902, 9.168608),
+                new com.google.maps.model.LatLng(47.668447, 9.168759));
+        //parkingLotHtwgKonstanz.showParkingLotOnMap(Color.RED);
+        parkingLotHtwgKonstanz.setName("HTWG");
+        Geofence geofence = new Geofence.Builder()
+                .setRequestId(parkingLotHtwgKonstanz.getName())
+                .setCircularRegion(47.668110,9.169001, 200)
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
+                .setLoiteringDelay(10000)
+                .build();
+        parkingLotHtwgKonstanz.setGeofencePosition(new com.google.maps.model.LatLng(47.668110, 9.169001));
+        parkingLotHtwgKonstanz.setParkingLotsOccupied(2);
+        truckParkLot.addParkingLot(parkingLotHtwgKonstanz);
+        truckParkLot.saveNewParkingLot(parkingLotHtwgKonstanz);
+        //database.addParkingLot(parkingLotHtwgKonstanz);
+        /*for (Map.Entry<String, LatLng> truckParkingSpace : truckParkingSpaces.entrySet()) {
             geofences.add(new Geofence.Builder()
                     .setRequestId(truckParkingSpace.getKey())
                     .setCircularRegion(
@@ -460,7 +457,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
                     .setLoiteringDelay(10000)
                     .build());
-        }
+        }*/
+
         pendingGeofenceTask = PendingGeofenceTask.ADD;
         performPendingGeofenceTask();
     }
@@ -484,16 +482,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         void onFragmentInteraction(Uri uri);
     }
 
-    private GeoApiContext getGeoApiContext() {
-        GeoApiContext.Builder geoApiContext = new GeoApiContext.Builder();
-        geoApiContext.apiKey(getString(R.string.google_api_key));
 
-        return geoApiContext.build();
-    }
 
-    private void addRouteToMap(DirectionsResult result, GoogleMap map){
-        List<LatLng> path = PolyUtil.decode(result.routes[0].overviewPolyline.getEncodedPath());
-        map.addPolyline(new PolylineOptions().addAll(path));
-    }
+
 
 }
