@@ -25,8 +25,6 @@ public class ParkingLot {
 
     private LatLng geofencePosition;
 
-    private String documentId;
-
     public ParkingLot(String name, List<LatLng> parkingLotDimensions, int maxParkingLots, LatLng geofencePosition) {
         this.name = name;
         this.parkingLotDimensions = parkingLotDimensions;
@@ -96,14 +94,6 @@ public class ParkingLot {
             returnList.add(new com.google.android.gms.maps.model.LatLng(latLng.lat, latLng.lng));
         }
         return returnList;
-    }
-
-    public String getDocumentId() {
-        return documentId;
-    }
-
-    public void setDocumentId(String documentId) {
-        this.documentId = documentId;
     }
 
     public List<String> getDevicesAtParkingArea() {

@@ -30,14 +30,16 @@ public class GoogleMapsDirectionApi implements DirectionApi {
     }
 
     @Override
-    public void sendDirectionRequest(LatLng origin, String destination, GoogleMap map) {
+    public DirectionsResult sendDirectionRequest(LatLng origin, String destination, GoogleMap map) {
         DirectionsApiRequest directionsApiRequest = DirectionsApi.newRequest(getGeoApiContext());
         directionsApiRequest.mode(TravelMode.DRIVING);
         directionsApiRequest.origin(new com.google.maps.model.LatLng(origin.latitude, origin.longitude));
         directionsApiRequest.destination(destination);
+        DirectionsResult result = null;
         try {
-            DirectionsResult result = directionsApiRequest.await();
+            result = directionsApiRequest.await();
             addRouteToMap(result,map);
+
         } catch (ApiException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -45,13 +47,16 @@ public class GoogleMapsDirectionApi implements DirectionApi {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return result;
     }
 
+    /*
     @Override
-    public void sendDirectionRequest(LatLng origin, LatLng destination, GoogleMap map) {
-
+    public DirectionsResult sendDirectionRequest(LatLng origin, LatLng destination, GoogleMap map) {
+        //TODO implement
+        return null;
     }
-
+*/
     private void addRouteToMap(DirectionsResult result, GoogleMap map){
         List<LatLng> path = PolyUtil.decode(result.routes[0].overviewPolyline.getEncodedPath());
         map.addPolyline(new PolylineOptions().addAll(path));

@@ -29,6 +29,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -58,12 +64,18 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import com.google.maps.android.PolyUtil;
+import com.google.maps.model.DirectionsResult;
 
 
+import org.json.JSONObject;
+
+import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import moco.htwg.de.truckparkapp.R;
+import moco.htwg.de.truckparkapp.app.AppController;
 import moco.htwg.de.truckparkapp.direction.DirectionApi;
 import moco.htwg.de.truckparkapp.direction.DirectionApiFactory;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
@@ -267,12 +279,45 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         startLocationUpdates();
         truckParkLot = TruckParkLot.getInstance();
         //addParkingLotIntoDatabase();
+        final ObjectMapper mapper = new ObjectMapper();
         if(destinationPlace != null && destinationStreet != null){
+            DirectionsResult directionsResult;
             if(lastKnownPosition == null){
-                directionApi.sendDirectionRequest(new LatLng(47.6681, 9.1687), destinationStreet+","+destinationPlace, map);
+                directionsResult = directionApi.sendDirectionRequest(new LatLng(47.6681, 9.1687), destinationStreet+","+destinationPlace, map);
             } else {
-                directionApi.sendDirectionRequest(new LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()), destinationStreet+","+destinationPlace, map);
+                directionsResult = directionApi.sendDirectionRequest(new LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()), destinationStreet+","+destinationPlace, map);
             }
+            final List<LatLng> path = PolyUtil.decode(directionsResult.routes[0].overviewPolyline.getEncodedPath());
+            Map<String, String> params = new HashMap<String, String>();
+            try {
+                int i = 0;
+                for(LatLng latLng: path){
+                    //TODO Build latlng-latlong-converter
+                    com.google.maps.model.LatLng anotherLatLong = new com.google.maps.model.LatLng(latLng.latitude, latLng.longitude);
+                    params.put(String.valueOf(i++), mapper.writeValueAsString(anotherLatLong));
+                }
+
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                    Request.Method.POST,
+                    getString(R.string.rest_server_url)+"/parkinglots",
+                    new JSONObject(params),
+                    new Response.Listener<JSONObject>() {
+
+                @Override
+                public void onResponse(JSONObject response) {
+                    System.out.println(response);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    System.out.println(error);
+                }
+            });
+            AppController.getInstance().addToRequestQueue(jsonObjectRequest);
         }
     }
 
@@ -430,44 +475,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         }
     }
 
-    private void addParkingLotIntoDatabase() {
-        Map<String, LatLng> truckParkingSpaces = new HashMap<>();
-        truckParkingSpaces.put("HTWG", new LatLng(47.668110, 9.169001));
 
-
-        ParkingLot parkingLotHtwgKonstanz = new ParkingLot(40,
-                new com.google.maps.model.LatLng(47.668340, 9.169379),
-                new com.google.maps.model.LatLng(47.667807, 9.169234),
-                new com.google.maps.model.LatLng(47.667902, 9.168608),
-                new com.google.maps.model.LatLng(47.668447, 9.168759));
-        //parkingLotHtwgKonstanz.showParkingLotOnMap(Color.RED);
-        parkingLotHtwgKonstanz.setName("HTWG");
-        Geofence geofence = new Geofence.Builder()
-                .setRequestId(parkingLotHtwgKonstanz.getName())
-                .setCircularRegion(47.668110,9.169001, 200)
-                .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
-                .setLoiteringDelay(10000)
-                .build();
-        parkingLotHtwgKonstanz.setGeofencePosition(new com.google.maps.model.LatLng(47.668110, 9.169001));
-        truckParkLot.addParkingLot(parkingLotHtwgKonstanz);
-        truckParkLot.saveNewParkingLot(parkingLotHtwgKonstanz);
-        //database.addParkingLot(parkingLotHtwgKonstanz);
-        /*for (Map.Entry<String, LatLng> truckParkingSpace : truckParkingSpaces.entrySet()) {
-            geofences.add(new Geofence.Builder()
-                    .setRequestId(truckParkingSpace.getKey())
-                    .setCircularRegion(
-                            truckParkingSpace.getValue().latitude,
-                            truckParkingSpace.getValue().longitude, 200)
-                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
-                    .setLoiteringDelay(10000)
-                    .build());
-        }*/
-
-        pendingGeofenceTask = PendingGeofenceTask.ADD;
-        performPendingGeofenceTask();
-    }
 
     private enum PendingGeofenceTask {
         ADD, REMOVE, NONE

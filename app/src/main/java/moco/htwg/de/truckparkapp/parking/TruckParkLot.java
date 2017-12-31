@@ -52,7 +52,6 @@ public class TruckParkLot {
                 if (task.isSuccessful()) {
                     for (DocumentSnapshot document : task.getResult()) {
                         ParkingLot newParkinglot = document.toObject(ParkingLot.class);
-                        newParkinglot.setDocumentId(document.getId());
                         addParkingLot(newParkinglot);
                         database.getRealtimeUpdates("parkingLots", document.getId(), parkingLots);
                     }
