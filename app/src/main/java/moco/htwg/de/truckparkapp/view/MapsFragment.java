@@ -331,7 +331,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        List<String> parkingLotsOnRouteNames = new ArrayList<>();
                         Iterator<String> keys = response.keys();
                         pendingGeofenceTask = PendingGeofenceTask.ADD;
                         boolean addedToParkingListOnRouteList = TruckParkLot.getInstance().getParkingLotsOnRouteAndAddToParkingListOnRoute(keys, parkingLotsAdapter);

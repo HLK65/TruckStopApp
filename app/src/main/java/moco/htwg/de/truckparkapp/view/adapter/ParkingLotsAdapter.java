@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import moco.htwg.de.truckparkapp.R;
@@ -19,7 +20,7 @@ import moco.htwg.de.truckparkapp.model.ParkingLot;
 
 public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.MyViewHolder> {
 
-    private Set<ParkingLot> parkingLotList;
+    private List<ParkingLot> parkingLotList;
     DecimalFormat decimalFormat;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -34,7 +35,7 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
         }
     }
 
-    public ParkingLotsAdapter(Set<ParkingLot> parkingLotList){
+    public ParkingLotsAdapter(List<ParkingLot> parkingLotList){
         this.parkingLotList = parkingLotList;
         decimalFormat = new DecimalFormat("#.# km");
     }

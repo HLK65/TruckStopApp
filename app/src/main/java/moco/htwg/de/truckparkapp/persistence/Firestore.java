@@ -11,6 +11,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.List;
 import java.util.Set;
 
 import moco.htwg.de.truckparkapp.model.ParkingLot;
@@ -45,7 +46,7 @@ public class Firestore implements Database {
         return firebaseFirestore.collection(collection).get();
     }
 
-    public DocumentReference getRealtimeUpdates(String collection, String document, final Set<ParkingLot> parkingLotSet){
+    public DocumentReference getRealtimeUpdates(String collection, String document, final List<ParkingLot> parkingLotSet){
         return firebaseFirestore.collection(collection).document(document);
 
     }
