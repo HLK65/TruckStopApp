@@ -2,6 +2,7 @@ package moco.htwg.de.truckparkapp.view;
 
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.PendingIntent;
 
@@ -20,6 +21,7 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 
 import android.support.v4.content.LocalBroadcastManager;
@@ -77,6 +79,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import moco.htwg.de.truckparkapp.R;
 import moco.htwg.de.truckparkapp.app.AppController;
@@ -129,6 +132,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
     private RecyclerView.LayoutManager layoutManager;
     private ParkingLotsAdapter parkingLotsAdapter;
+
+    private FragmentActivity activity;
 
     public MapsFragment() {
         // Required empty public constructor
@@ -209,7 +214,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                     }
                 } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")) {
                     if(parkingLot != null){
-                        parkingLot.removeDeviceFromParkingLot(Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID));
+                        parkingLot.removeDeviceFromParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID));
                         truckParkLot.updateParkingLot(parkingLot);
                     }
                     parkingLotPolygon = null;
@@ -328,7 +333,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                         List<String> parkingLotsOnRouteNames = new ArrayList<>();
                         Iterator<String> keys = response.keys();
                         pendingGeofenceTask = PendingGeofenceTask.ADD;
-                        boolean addedToParkingListOnRouteList = TruckParkLot.getInstance().getParkingLotsOnRouteAndAddToParkingListOnRoute(keys);
+                        boolean addedToParkingListOnRouteList = TruckParkLot.getInstance().getParkingLotsOnRouteAndAddToParkingListOnRoute(keys, parkingLotsAdapter);
                         if(addedToParkingListOnRouteList){
                             parkingLotsAdapter.notifyDataSetChanged();
                             performPendingGeofenceTask();
@@ -351,6 +356,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     public void onComplete(@NonNull Task<Void> task) {
         pendingGeofenceTask = PendingGeofenceTask.NONE;
         Log.d(TAG, "on Complete");
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        this.activity = (FragmentActivity) activity;
     }
 
     private void performPendingGeofenceTask() {
@@ -438,16 +449,19 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 Location location = locationResult.getLastLocation();
+                TruckParkLot.getInstance().calculateDistanceToParkingLot(new com.google.maps.model.LatLng(location.getLatitude(), location.getLongitude()));
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM));
                 if (parkingLotPolygon != null) {
                     boolean containsLocation = PolyUtil.containsLocation(new LatLng(location.getLatitude(), location.getLongitude()), parkingLotPolygon.getPoints(), true);
                     if (containsLocation) {
-                        //TODO think about a more anonymous way to identify a device (e.g. uuid)
-                        parkingLot.addDeviceToParkingLot(Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID));
-                        enteredTruckParkSlotIndicator.setVisibility(View.VISIBLE);
-                        truckParkLot.updateParkingLot(parkingLot);
+                        if(parkingLot != null){
+                            //TODO think about a more anonymous way to identify a device (e.g. uuid)
+                            if(activity != null){
+                                parkingLot.addDeviceToParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID));
+                            }
+                            truckParkLot.updateParkingLot(parkingLot);
+                        }
                     } else if (!containsLocation) {
-                        enteredTruckParkSlotIndicator.setVisibility(View.INVISIBLE);
                     }
 
                 }

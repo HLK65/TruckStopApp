@@ -6,7 +6,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.List;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Set;
 
 import moco.htwg.de.truckparkapp.R;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
@@ -17,7 +19,8 @@ import moco.htwg.de.truckparkapp.model.ParkingLot;
 
 public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.MyViewHolder> {
 
-    private List<ParkingLot> parkingLotList;
+    private Set<ParkingLot> parkingLotList;
+    DecimalFormat decimalFormat;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
 
@@ -31,8 +34,9 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
         }
     }
 
-    public ParkingLotsAdapter(List<ParkingLot> parkingLotList){
+    public ParkingLotsAdapter(Set<ParkingLot> parkingLotList){
         this.parkingLotList = parkingLotList;
+        decimalFormat = new DecimalFormat(".# km");
     }
 
 
@@ -46,10 +50,11 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
 
     @Override
     public void onBindViewHolder(ParkingLotsAdapter.MyViewHolder holder, int position) {
-        ParkingLot parkingLot = parkingLotList.get(position);
+        ParkingLot parkingLot = (ParkingLot) new ArrayList(parkingLotList).get(position);
         holder.name.setText(parkingLot.getName());
-        //parkingLot.getMaxParkingLots()-parkingLot.getDevicesAtParkingArea().size()
-        holder.parkinglotsFree.setText("1");
+
+        holder.parkinglotsFree.setText("Frei: "+(parkingLot.getMaxParkingLots()-parkingLot.getDevicesAtParkingArea().size()));
+        holder.kilometres.setText("Entf. "+decimalFormat.format(parkingLot.getDistanceFromCurrentLocationInKilometres()));
     }
 
     @Override

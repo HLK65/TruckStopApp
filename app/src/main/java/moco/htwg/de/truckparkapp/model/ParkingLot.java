@@ -3,6 +3,7 @@ package moco.htwg.de.truckparkapp.model;
 
 
 
+import com.google.firebase.firestore.Exclude;
 import com.google.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -23,7 +24,12 @@ public class ParkingLot {
 
     private int maxParkingLots;
 
+    private Directions drivingDirection;
+
     private LatLng geofencePosition;
+
+    @Exclude
+    private double distanceFromCurrentLocationInKilometres;
 
     public ParkingLot(String name, List<LatLng> parkingLotDimensions, int maxParkingLots, LatLng geofencePosition) {
         this.name = name;
@@ -116,6 +122,22 @@ public class ParkingLot {
         }
     }
 
+    public Directions getDrivingDirection() {
+        return drivingDirection;
+    }
+
+    public void setDrivingDirection(Directions drivingDirection) {
+        this.drivingDirection = drivingDirection;
+    }
+
+    public double getDistanceFromCurrentLocationInKilometres() {
+        return distanceFromCurrentLocationInKilometres;
+    }
+
+    public void setDistanceFromCurrentLocationInKilometres(double distanceFromCurrentLocationInKilometres) {
+        this.distanceFromCurrentLocationInKilometres = distanceFromCurrentLocationInKilometres;
+    }
+
     @Override
     public String toString() {
         return "ParkingLot{" +
@@ -124,5 +146,33 @@ public class ParkingLot {
                 ", maxParkingLots=" + maxParkingLots +
                 ", geofencePosition=" + geofencePosition +
                 '}';
+    }
+
+    public enum Directions {
+        NORTH (270,90), EAST(0,180), SOUTH(90,270), WEST(180,360), ALL(0,360);
+
+        private double lowerBoundaryDirection;
+        private double upperBoundaryDirection;
+
+        Directions(double lowerBoundaryDirection, double upperBoundaryDirection){
+            this.lowerBoundaryDirection = lowerBoundaryDirection;
+            this.upperBoundaryDirection = upperBoundaryDirection;
+        }
+
+        public double getLowerBoundaryDirection() {
+            return lowerBoundaryDirection;
+        }
+
+        public void setLowerBoundaryDirection(double lowerBoundaryDirection) {
+            this.lowerBoundaryDirection = lowerBoundaryDirection;
+        }
+
+        public double getUpperBoundaryDirection() {
+            return upperBoundaryDirection;
+        }
+
+        public void setUpperBoundaryDirection(double upperBoundaryDirection) {
+            this.upperBoundaryDirection = upperBoundaryDirection;
+        }
     }
 }
