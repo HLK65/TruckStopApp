@@ -17,7 +17,7 @@ import android.view.MenuItem;
 
 import moco.htwg.de.truckparkapp.R;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MapsFragment.OnFragmentInteractionListener, FirestoreFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MapsFragment.OnFragmentInteractionListener, FirestoreFragment.OnFragmentInteractionListener, InputFreeSlotsFragment.OnFragmentInteractionListener {
 
     private final String TAG = this.getClass().getSimpleName();
     FragmentManager fragmentManager;
@@ -65,8 +65,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle Action
         if (id == R.id.nav_map) {
             fragment = MapsFragment.newInstance();
-        } else if (id == R.id.nav_destination){
+        } else if (id == R.id.nav_destination) {
             fragment = DestinationFragment.newInstance();
+        } else if (id == R.id.nav_inputSlots) {
+            fragment = InputFreeSlotsFragment.newInstance("", ""); //todo
         } else if (id == R.id.nav_settings) {
             // todo
         } else if (id == R.id.nav_firestore) {
