@@ -1,22 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.MapView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.8"
+
         tools:context="moco.htwg.de.truckparkapp.view.MapsFragment" />
 
-    <TextView
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.2"
+
+        android:scrollbars="horizontal"/>
+
+    <!--TextView
         android:id="@+id/entered_truck_park_slot_indicator"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+
         android:text="@string/entered_truck_park_slot"
         android:textColor="#008e00"
-        android:visibility="invisible" />
+        android:visibility="invisible" /-->
 
-</RelativeLayout>
+</LinearLayout>

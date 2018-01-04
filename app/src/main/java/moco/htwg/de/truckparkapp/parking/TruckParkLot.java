@@ -1,5 +1,6 @@
 package moco.htwg.de.truckparkapp.parking;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -13,6 +14,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +33,9 @@ public class TruckParkLot {
     private static TruckParkLot truckParkLot;
 
     private Map<String, ParkingLot> parkingLots;
+    private List<ParkingLot> parkingLotsOnRoute;
     private List<Geofence> geofenceList;
+
 
     private Database database;
 
@@ -46,6 +50,7 @@ public class TruckParkLot {
         this.database = DatabaseFactory.getDatabase(DatabaseFactory.Type.FIRESTORE);
         parkingLots = new HashMap<>();
         geofenceList = new ArrayList<>();
+        parkingLotsOnRoute = new ArrayList<>();
         database.getParkingLots("parkingLots").addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -62,13 +67,28 @@ public class TruckParkLot {
         });
     }
 
+    public boolean getParkingLotsOnRouteAndAddToParkingListOnRoute(Iterator<String> keys){
+        List<String> parkingLotsOnRouteNames = new ArrayList<>();
+        while (keys.hasNext()){
+            parkingLotsOnRouteNames.add(keys.next());
+        }
+        ParkingLot parkingLot = null;
+        for(String parkingLotName : parkingLotsOnRouteNames){
+            parkingLot = this.parkingLots.get(parkingLotName);
+            this.parkingLotsOnRoute.add(parkingLot);
+            this.geofenceList.add(createGeofence(parkingLot));
+        }
+        return parkingLotsOnRouteNames.size() == this.parkingLotsOnRoute.size();
+    }
+
     public Map<String, ParkingLot> getParkingLots() {
         return parkingLots;
     }
 
     public void addParkingLot(ParkingLot parkingLot){
         parkingLots.put(parkingLot.getName(), parkingLot);
-        geofenceList.add(createGeofence(parkingLot));
+        //parkingLotsOnRoute.add(parkingLot);
+        //geofenceList.add(createGeofence(parkingLot));
     }
 
     private Geofence createGeofence(ParkingLot parkingLot){
@@ -93,5 +113,13 @@ public class TruckParkLot {
 
     public void updateParkingLot(ParkingLot parkingLot){
         database.updateParkingLot(parkingLot);
+    }
+
+    public List<ParkingLot> getParkingLotsOnRoute() {
+        return parkingLotsOnRoute;
+    }
+
+    public void setParkingLotsOnRoute(List<ParkingLot> parkingLotsOnRoute) {
+        this.parkingLotsOnRoute = parkingLotsOnRoute;
     }
 }

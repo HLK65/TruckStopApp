@@ -23,12 +23,16 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -38,7 +42,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
@@ -69,8 +72,9 @@ import com.google.maps.model.DirectionsResult;
 
 import org.json.JSONObject;
 
-import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -82,6 +86,7 @@ import moco.htwg.de.truckparkapp.model.ParkingLot;
 import moco.htwg.de.truckparkapp.parking.TruckParkLot;
 
 import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
+import moco.htwg.de.truckparkapp.view.adapter.ParkingLotsAdapter;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -98,6 +103,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     private final String TAG = this.getClass().getSimpleName();
     private GoogleMap map;
     private MapView mapView;
+    RecyclerView recyclerView;
     private boolean locationPermissionGranted;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Location lastKnownPosition;
@@ -120,6 +126,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     private DirectionApi directionApi;
     private TruckParkLot truckParkLot;
     private ParkingLot parkingLot;
+
+    private RecyclerView.LayoutManager layoutManager;
+    private ParkingLotsAdapter parkingLotsAdapter;
 
     public MapsFragment() {
         // Required empty public constructor
@@ -158,16 +167,18 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_maps, container, false);
         context = view.getContext();
-
+        recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
         settingsClient = LocationServices.getSettingsClient(context);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         mapView = view.findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
-
-        enteredTruckParkSlotIndicator = view.findViewById(R.id.entered_truck_park_slot_indicator);
-
+        layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
+        //enteredTruckParkSlotIndicator = view.findViewById(R.id.entered_truck_park_slot_indicator);
+        parkingLotsAdapter = new ParkingLotsAdapter(TruckParkLot.getInstance().getParkingLotsOnRoute());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(parkingLotsAdapter);
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingRequest();
@@ -287,38 +298,53 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
             } else {
                 directionsResult = directionApi.sendDirectionRequest(new LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()), destinationStreet+","+destinationPlace, map);
             }
-            final List<LatLng> path = PolyUtil.decode(directionsResult.routes[0].overviewPolyline.getEncodedPath());
-            Map<String, String> params = new HashMap<String, String>();
-            try {
-                int i = 0;
-                for(LatLng latLng: path){
-                    //TODO Build latlng-latlong-converter
-                    com.google.maps.model.LatLng anotherLatLong = new com.google.maps.model.LatLng(latLng.latitude, latLng.longitude);
-                    params.put(String.valueOf(i++), mapper.writeValueAsString(anotherLatLong));
+            if(directionsResult == null){
+                Log.e(TAG, "could not read from directions api");
+                Toast toast = Toast.makeText(context, R.string.could_not_read_directions_api_toast, Toast.LENGTH_LONG);
+                toast.show();
+            } else {
+                final List<LatLng> path = PolyUtil.decode(directionsResult.routes[0].overviewPolyline.getEncodedPath());
+                Map<String, String> params = new HashMap<String, String>();
+                try {
+                    int i = 0;
+                    for(LatLng latLng: path){
+                        //TODO Build latlng-latlong-converter
+                        com.google.maps.model.LatLng anotherLatLong = new com.google.maps.model.LatLng(latLng.latitude, latLng.longitude);
+                        params.put(String.valueOf(i++), mapper.writeValueAsString(anotherLatLong));
+                    }
+
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
                 }
 
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                        Request.Method.POST,
+                        getString(R.string.rest_server_url)+"/parkinglots",
+                        new JSONObject(params),
+                        new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        List<String> parkingLotsOnRouteNames = new ArrayList<>();
+                        Iterator<String> keys = response.keys();
+                        pendingGeofenceTask = PendingGeofenceTask.ADD;
+                        boolean addedToParkingListOnRouteList = TruckParkLot.getInstance().getParkingLotsOnRouteAndAddToParkingListOnRoute(keys);
+                        if(addedToParkingListOnRouteList){
+                            parkingLotsAdapter.notifyDataSetChanged();
+                            performPendingGeofenceTask();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.out.println(error);
+                    }
+                });
+                jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(10000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                AppController.getInstance().addToRequestQueue(jsonObjectRequest);
             }
-
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-                    Request.Method.POST,
-                    getString(R.string.rest_server_url)+"/parkinglots",
-                    new JSONObject(params),
-                    new Response.Listener<JSONObject>() {
-
-                @Override
-                public void onResponse(JSONObject response) {
-                    System.out.println(response);
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    System.out.println(error);
-                }
-            });
-            AppController.getInstance().addToRequestQueue(jsonObjectRequest);
         }
+
     }
 
     @Override
@@ -336,6 +362,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     private void addGeofences() {
         checkLocationPermission();
         geofencingClient.addGeofences(getGeofencingRequest(), getGeofencesPendingIntent()).addOnCompleteListener(this);
+        pendingGeofenceTask = PendingGeofenceTask.NONE;
     }
 
     private GeofencingRequest getGeofencingRequest() {

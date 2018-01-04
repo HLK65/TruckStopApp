@@ -13,6 +13,7 @@ import com.google.maps.model.TravelMode;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -65,6 +66,9 @@ public class GoogleMapsDirectionApi implements DirectionApi {
     private GeoApiContext getGeoApiContext() {
         GeoApiContext.Builder geoApiContext = new GeoApiContext.Builder();
         geoApiContext.apiKey(apiKey);
+        geoApiContext.connectTimeout(10, TimeUnit.SECONDS);
+        geoApiContext.readTimeout(10, TimeUnit.SECONDS);
+        geoApiContext.writeTimeout(10, TimeUnit.SECONDS);
 
         return geoApiContext.build();
     }
