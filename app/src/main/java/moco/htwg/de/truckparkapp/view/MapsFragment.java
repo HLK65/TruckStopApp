@@ -215,6 +215,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                 } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")) {
                     if(parkingLot != null){
                         parkingLot.removeDeviceFromParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID));
+                        truckParkLot.removePassedParkingLotFromParkingLotsOnRouteList(parkingLot);
                         truckParkLot.updateParkingLot(parkingLot);
                     }
                     parkingLotPolygon = null;

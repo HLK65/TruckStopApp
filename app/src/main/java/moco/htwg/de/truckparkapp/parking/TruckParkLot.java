@@ -158,6 +158,12 @@ public class TruckParkLot {
             parkingLot.setDistanceFromCurrentLocationInKilometres(results[0]/1000);
         }
         if(parkingLotsAdapter != null) parkingLotsAdapter.notifyDataSetChanged();
+    }
 
+    public void removePassedParkingLotFromParkingLotsOnRouteList(ParkingLot passedParkingLot){
+        this.parkingLotsOnRoute.remove(passedParkingLot);
+        if(parkingLotsAdapter != null){
+            parkingLotsAdapter.notifyDataSetChanged();
+        }
     }
 }

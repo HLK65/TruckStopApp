@@ -53,8 +53,8 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
         ParkingLot parkingLot = (ParkingLot) new ArrayList(parkingLotList).get(position);
         holder.name.setText(parkingLot.getName());
 
-        holder.parkinglotsFree.setText("Frei: "+(parkingLot.getMaxParkingLots()-parkingLot.getDevicesAtParkingArea().size()));
-        holder.kilometres.setText("Entf. "+decimalFormat.format(parkingLot.getDistanceFromCurrentLocationInKilometres()));
+        holder.parkinglotsFree.setText("Frei: " + (parkingLot.getMaxParkingLots() - parkingLot.getDevicesAtParkingArea().size()));
+        holder.kilometres.setText("Entf. " + decimalFormat.format(parkingLot.getDistanceFromCurrentLocationInKilometres()));
     }
 
     @Override
