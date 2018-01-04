@@ -15,6 +15,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,7 +39,7 @@ public class TruckParkLot {
     private static TruckParkLot truckParkLot;
 
     private Map<String, ParkingLot> parkingLots;
-    private Set<ParkingLot> parkingLotsOnRoute;
+    private List<ParkingLot> parkingLotsOnRoute;
     private List<Geofence> geofenceList;
 
     private ParkingLotsAdapter parkingLotsAdapter;
@@ -56,7 +57,7 @@ public class TruckParkLot {
         this.database = DatabaseFactory.getDatabase(DatabaseFactory.Type.FIRESTORE);
         parkingLots = new HashMap<>();
         geofenceList = new ArrayList<>();
-        parkingLotsOnRoute = new HashSet<>();
+        parkingLotsOnRoute = new ArrayList<>();
         database.getParkingLots("parkingLots").addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -102,8 +103,12 @@ public class TruckParkLot {
         ParkingLot parkingLot = null;
         for(String parkingLotName : parkingLotsOnRouteNames){
             parkingLot = this.parkingLots.get(parkingLotName);
-            this.parkingLotsOnRoute.add(parkingLot);
-            this.geofenceList.add(createGeofence(parkingLot));
+            if(!this.parkingLotsOnRoute.contains(parkingLot)){
+                this.parkingLotsOnRoute.add(parkingLot);
+            }
+            if(!this.geofenceList.contains(parkingLot)){
+                this.geofenceList.add(createGeofence(parkingLot));
+            }
             liveUpdateParkingLotsOnRoute(parkingLot);
         }
         return parkingLotsOnRouteNames.size() == this.parkingLotsOnRoute.size();
@@ -143,11 +148,12 @@ public class TruckParkLot {
 
 
 
-    public Set<ParkingLot> getParkingLotsOnRoute() {
+    public List<ParkingLot> getParkingLotsOnRoute() {
+        sortParkingLotsOnRouteByDistance();
         return parkingLotsOnRoute;
     }
 
-    public void setParkingLotsOnRoute(Set<ParkingLot> parkingLotsOnRoute) {
+    public void setParkingLotsOnRoute(List<ParkingLot> parkingLotsOnRoute) {
         this.parkingLotsOnRoute = parkingLotsOnRoute;
     }
 
@@ -157,7 +163,30 @@ public class TruckParkLot {
             Location.distanceBetween(parkingLot.getGeofencePosition().lat, parkingLot.getGeofencePosition().lng, currentPosition.lat, currentPosition.lng, results);
             parkingLot.setDistanceFromCurrentLocationInKilometres(results[0]/1000);
         }
+        sortParkingLotsOnRouteByDistance();
         if(parkingLotsAdapter != null) parkingLotsAdapter.notifyDataSetChanged();
+    }
 
+    public void removePassedParkingLotFromParkingLotsOnRouteList(ParkingLot passedParkingLot){
+        this.parkingLotsOnRoute.remove(passedParkingLot);
+        if(parkingLotsAdapter != null){
+            parkingLotsAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void sortParkingLotsOnRouteByDistance(){
+        parkingLotsOnRoute.sort(new Comparator<ParkingLot>() {
+            @Override
+            public int compare(ParkingLot o1, ParkingLot o2) {
+                if (o1.getDistanceFromCurrentLocationInKilometres() < o2.getDistanceFromCurrentLocationInKilometres()) {
+                    return -1;
+                } else if (o1.getDistanceFromCurrentLocationInKilometres() == o2.getDistanceFromCurrentLocationInKilometres()) {
+                    return 0;
+                } else if (o1.getDistanceFromCurrentLocationInKilometres() > o2.getDistanceFromCurrentLocationInKilometres()) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
     }
 }
