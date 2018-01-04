@@ -2,11 +2,16 @@ package moco.htwg.de.truckparkapp.view;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -16,11 +21,13 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import moco.htwg.de.truckparkapp.R;
+import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MapsFragment.OnFragmentInteractionListener, FirestoreFragment.OnFragmentInteractionListener, InputFreeSlotsFragment.OnFragmentInteractionListener {
 
     private final String TAG = this.getClass().getSimpleName();
     FragmentManager fragmentManager;
+    private String parkingLotId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +46,43 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
 
         //Default Fragment (app start)
-        Fragment fragment = MapsFragment.newInstance();
         fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
-                .replace(R.id.content, fragment)
+                .replace(R.id.content, MapsFragment.newInstance(), MapsFragment.class.getSimpleName())
                 .commit();
+
+
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")) {
+                    Log.d(TAG, "onReceive: start parking");
+                    parkingLotId = intent.getStringExtra("PARKING_LOT_ID");
+
+                    NavigationView navigationView = findViewById(R.id.nav_view);
+                    navigationView.getMenu().findItem(R.id.nav_inputSlots).setEnabled(true).setChecked(true);
+
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.content, InputFreeSlotsFragment.newInstance(parkingLotId), InputFreeSlotsFragment.class.getSimpleName())
+                            .commit();
+                } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")) {
+                    Log.d(TAG, "onReceive: stop parking");
+                    parkingLotId = "";
+                    NavigationView navigationView = findViewById(R.id.nav_view);
+
+                    if (fragmentManager.findFragmentByTag(InputFreeSlotsFragment.class.getSimpleName()) != null &&
+                            fragmentManager.findFragmentByTag(InputFreeSlotsFragment.class.getSimpleName()).isVisible()) {
+                        fragmentManager.beginTransaction()
+                                .replace(R.id.content, MapsFragment.newInstance(), MapsFragment.class.getSimpleName())
+                                .commit();
+                        navigationView.getMenu().findItem(R.id.nav_map).setChecked(true);
+                    }
+
+                    navigationView.getMenu().findItem(R.id.nav_inputSlots).setEnabled(false);
+                }
+            }
+        }, new IntentFilter(GeofenceTransitionsIntentService.PARKING_BROADCAST));
     }
 
     @Override
@@ -68,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_destination) {
             fragment = DestinationFragment.newInstance();
         } else if (id == R.id.nav_inputSlots) {
-            fragment = InputFreeSlotsFragment.newInstance("", ""); //todo
+            fragment = InputFreeSlotsFragment.newInstance(parkingLotId);
         } else if (id == R.id.nav_settings) {
             // todo
         } else if (id == R.id.nav_firestore) {
@@ -80,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (fragment != null) {
             fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction()
-                    .replace(R.id.content, fragment)
+                    .replace(R.id.content, fragment, fragment.getClass().getSimpleName())
                     .commit();
             item.setChecked(true);
         } else {
@@ -98,4 +137,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Log.d(TAG, "onFragmentInteraction: " + uri);
         Log.w(TAG, "onFragmentInteraction: No Action Implemented!");
     }
+
+
 }

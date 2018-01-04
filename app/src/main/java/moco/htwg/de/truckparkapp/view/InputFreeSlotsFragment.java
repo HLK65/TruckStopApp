@@ -27,16 +27,8 @@ public class InputFreeSlotsFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
     private final String TAG = this.getClass().getSimpleName();
-    Button.OnClickListener submitOnClickListener = new Button.OnClickListener() {
 
-        @Override
-        public void onClick(View view) {
-            NumberPicker np = view.findViewById(R.id.numberPicker);
-            np.getValue(); //todo send to db
-        }
-    };
     NumberPicker.OnValueChangeListener onValueChangeListener =
             new NumberPicker.OnValueChangeListener() {
                 @Override
@@ -48,7 +40,6 @@ public class InputFreeSlotsFragment extends Fragment {
             };
     // TODO: Rename and change types of parameters
     private String mParam1;
-    private String mParam2;
     private OnFragmentInteractionListener mListener;
 
     public InputFreeSlotsFragment() {
@@ -60,15 +51,13 @@ public class InputFreeSlotsFragment extends Fragment {
      * this fragment using the provided parameters.
      *
      * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
      * @return A new instance of fragment InputFreeSlotsFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static InputFreeSlotsFragment newInstance(String param1, String param2) {
+    public static InputFreeSlotsFragment newInstance(String param1) {
         InputFreeSlotsFragment fragment = new InputFreeSlotsFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -78,14 +67,13 @@ public class InputFreeSlotsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_input_free_slots, container, false);
+        final View view = inflater.inflate(R.layout.fragment_input_free_slots, container, false);
 
         NumberPicker np = view.findViewById(R.id.numberPicker);
         np.setMinValue(1); //at least the user is on it
@@ -93,6 +81,13 @@ public class InputFreeSlotsFragment extends Fragment {
         np.setValue(10); //todo depending on calc usage
         np.setOnValueChangedListener(onValueChangeListener);
 
+        Button.OnClickListener submitOnClickListener = new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NumberPicker np = view.findViewById(R.id.numberPicker);
+                np.getValue(); //todo send to db
+            }
+        };
         Button submitButton = view.findViewById(R.id.button_submit_free_slots);
         submitButton.setOnClickListener(submitOnClickListener);
 
