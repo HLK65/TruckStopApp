@@ -36,7 +36,7 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
 
     public ParkingLotsAdapter(Set<ParkingLot> parkingLotList){
         this.parkingLotList = parkingLotList;
-        decimalFormat = new DecimalFormat(".# km");
+        decimalFormat = new DecimalFormat("#.# km");
     }
 
 
