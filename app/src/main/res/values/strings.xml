@@ -19,7 +19,7 @@
     <string name="destination_get_route">Route berechnen</string>
 
     <!-- REST-Server -->
-    <string name="rest_server_url">http://192.168.178.50:8080</string>
+    <string name="rest_server_url">http://truckpark.herokuapp.com</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
