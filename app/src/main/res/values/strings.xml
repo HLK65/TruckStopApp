@@ -18,6 +18,9 @@
     <string name="destination_place">Ort</string>
     <string name="destination_get_route">Route berechnen</string>
 
+    <string name="enter_free_slots">Bitte hilf uns die Genauigkeit der Vorhersage zu erhöhen, indem du die aktuelle Parkplatzauslastung angibst.</string>
+    <string name="current_truck_park_slot">Du befindest dich auf dem Parkplatz n/a</string>
+
     <!-- REST-Server -->
     <string name="rest_server_url">http://truckpark.herokuapp.com</string>
 
@@ -25,4 +28,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="could_not_read_directions_api_toast">Directions API konnte nicht gelesen werden. Bitte versuchen Sie es erneut</string>
 
+    <string name="menu_input_free_slots">Free Slots</string>
+    <string name="how_many_trucks">Wie viele LKWs befinden sich auf dem Parkplatz?</string>
+    <string name="button_send">Absenden</string>
 </resources>
