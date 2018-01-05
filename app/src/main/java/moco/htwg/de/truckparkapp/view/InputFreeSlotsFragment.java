@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.google.firebase.firestore.DocumentReference;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import moco.htwg.de.truckparkapp.R;
@@ -107,14 +108,19 @@ public class InputFreeSlotsFragment extends Fragment {
             if (documentSnapshot != null && documentSnapshot.exists()) {
                 Log.d(TAG, "Current data: " + documentSnapshot.getData());
                 parkingLot = documentSnapshot.toObject(ParkingLot.class);
-                List<String> devicesCopy = parkingLot.getDevicesAtParkingArea();
+                List<String> devicesCopy = new ArrayList<>(parkingLot.getDevicesAtParkingArea());
                 devicesCopy.removeIf(s -> s.contains("userUpdate."));
-                //dont change value after user changed it
-                np.setEnabled(true);
-                if (numberPickerValue == 0)
-                    np.setValue(parkingLot.getDevicesAtParkingArea().size());
                 np.setMinValue(devicesCopy.size());
                 np.setMaxValue(parkingLot.getMaxParkingLots());
+                //dont change value after user could have changed it
+                if (!np.isEnabled()) {
+                    Log.d(TAG, "DevicesAtParkingArea: " + parkingLot.getDevicesAtParkingArea().size());
+                    Log.d(TAG, "np Value: " + np.getValue());
+                    // must be called after setting min/max!
+                    np.setValue(parkingLot.getDevicesAtParkingArea().size());
+                    Log.d(TAG, "np Value: " + np.getValue());
+                }
+                np.setEnabled(true);
                 submitButton.setEnabled(true);
             } else {
                 Log.d(TAG, "Current data: null");

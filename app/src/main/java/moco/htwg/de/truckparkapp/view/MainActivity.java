@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .commit();
 
 
+        // ask for precise parking area usage on arrival
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
