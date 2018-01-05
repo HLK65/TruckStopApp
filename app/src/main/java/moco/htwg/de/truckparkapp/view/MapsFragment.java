@@ -32,8 +32,6 @@ import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -431,7 +429,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                 super.onLocationResult(locationResult);
                 Location location = locationResult.getLastLocation();
                 TruckParkLot.getInstance().calculateDistanceToParkingLot(new com.google.maps.model.LatLng(location.getLatitude(), location.getLongitude()));
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM));
+                map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
                 if (parkingLotPolygon != null) {
                     boolean containsLocation = PolyUtil.containsLocation(new LatLng(location.getLatitude(), location.getLongitude()), parkingLotPolygon.getPoints(), true);
                     if (containsLocation) {
