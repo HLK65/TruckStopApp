@@ -182,4 +182,36 @@ public class ParkingLot {
             this.upperBoundaryDirection = upperBoundaryDirection;
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ParkingLot that = (ParkingLot) o;
+
+        if (maxParkingLots != that.maxParkingLots) return false;
+        if (Double.compare(that.distanceFromCurrentLocationInKilometres, distanceFromCurrentLocationInKilometres) != 0)
+            return false;
+        if (!name.equals(that.name)) return false;
+        if (!parkingLotDimensions.equals(that.parkingLotDimensions)) return false;
+        if (!devicesAtParkingArea.equals(that.devicesAtParkingArea)) return false;
+        if (drivingDirection != that.drivingDirection) return false;
+        return geofencePosition.equals(that.geofencePosition);
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = name.hashCode();
+        result = 31 * result + parkingLotDimensions.hashCode();
+        result = 31 * result + devicesAtParkingArea.hashCode();
+        result = 31 * result + maxParkingLots;
+        result = 31 * result + drivingDirection.hashCode();
+        result = 31 * result + geofencePosition.hashCode();
+        temp = Double.doubleToLongBits(distanceFromCurrentLocationInKilometres);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
 }
