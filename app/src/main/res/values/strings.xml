@@ -32,4 +32,5 @@
     <string name="how_many_trucks">Wie viele LKWs befinden sich auf dem Parkplatz %s?</string>
     <string name="button_send">Absenden</string>
     <string name="updatedFreeSlots">Danke, Anzahl freier Plätze aktuallisiert</string>
+    <string name="app_icon">app icon</string>
 </resources>

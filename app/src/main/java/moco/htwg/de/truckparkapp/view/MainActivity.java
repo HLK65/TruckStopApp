@@ -28,6 +28,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private final String TAG = this.getClass().getSimpleName();
     FragmentManager fragmentManager;
     private String parkingLotId;
+    private String destinationSteet;
+    private String destinationPostal;
+    private String destinationPlace;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,14 +63,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if (intent != null) {
                     switch (intent.getStringExtra("FragmentAction")) {
                         // ask for precise parking area usage on arrival
-                        case "START_INPUT_FREE_SLOTS": {
+                        case "START_INPUT_FREE_SLOTS":
                             parkingLotId = intent.getStringExtra("PARKING_LOT_ID");
                             navigationView.getMenu().findItem(R.id.nav_inputSlots).setEnabled(true).setChecked(true);
                             fragmentManager.beginTransaction()
                                     .replace(R.id.content, InputFreeSlotsFragment.newInstance(parkingLotId), InputFreeSlotsFragment.class.getSimpleName())
                                     .commit();
                             break;
-                        }
+
+                        case "START_MAP":
+                            if (intent.getStringExtra("DESTINATION_STREET") != null
+                                    && intent.getStringExtra("DESTINATION_POSTAL") != null
+                                    && intent.getStringExtra("DESTINATION_PLACE") != null) {
+                                destinationSteet = intent.getStringExtra("DESTINATION_STREET");
+                                destinationPostal = intent.getStringExtra("DESTINATION_POSTAL");
+                                destinationPlace = intent.getStringExtra("DESTINATION_PLACE");
+                            }
+
+                            navigationView.getMenu().findItem(R.id.nav_map).setChecked(true);
+
+                            Fragment fragment;
+                            if (destinationSteet != null && !destinationSteet.isEmpty()
+                                    && destinationPostal != null && !destinationPostal.isEmpty()
+                                    && destinationPlace != null && !destinationPlace.isEmpty()) {
+                                fragment = MapsFragment.newInstance(destinationSteet, destinationPostal, destinationPlace);
+                            } else {
+                                fragment = MapsFragment.newInstance();
+                            }
+                            fragmentManager.beginTransaction()
+                                    .replace(R.id.content, fragment, MapsFragment.class.getSimpleName())
+                                    .commit();
+
+                            break;
                     }
                 }
             }
@@ -76,19 +103,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-
-                /*if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")) {
-                    Log.d(TAG, "onReceive: start parking");
-                    parkingLotId = intent.getStringExtra("PARKING_LOT_ID");
-
-                    NavigationView navigationView = findViewById(R.id.nav_view);
-                    navigationView.getMenu().findItem(R.id.nav_inputSlots).setEnabled(true).setChecked(true);
-
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.content, InputFreeSlotsFragment.newInstance(parkingLotId), InputFreeSlotsFragment.class.getSimpleName())
-                            .commit();
-                } else*/
-
                 // hide InputFreeSlotsFragment when leaving geofence of parking area
                 if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")) {
                     Log.d(TAG, "onReceive: stop parking");
@@ -126,7 +140,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Handle Action
         if (id == R.id.nav_map) {
-            fragment = MapsFragment.newInstance();
+            if (destinationSteet != null && !destinationSteet.isEmpty()
+                    && destinationPostal != null && !destinationPostal.isEmpty()
+                    && destinationPlace != null && !destinationPlace.isEmpty()) {
+                fragment = MapsFragment.newInstance(destinationSteet, destinationPostal, destinationPlace);
+            } else {
+                fragment = MapsFragment.newInstance();
+            }
         } else if (id == R.id.nav_destination) {
             fragment = DestinationFragment.newInstance();
         } else if (id == R.id.nav_inputSlots) {
