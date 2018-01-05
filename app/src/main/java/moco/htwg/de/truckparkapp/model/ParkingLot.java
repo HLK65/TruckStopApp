@@ -110,10 +110,12 @@ public class ParkingLot {
         this.devicesAtParkingArea = devicesAtParkingArea;
     }
 
-    public void addDeviceToParkingLot(String deviceId){
+    public boolean addDeviceToParkingLot(String deviceId){
         if(!this.devicesAtParkingArea.contains(deviceId)){
             this.devicesAtParkingArea.add(deviceId);
+            return true;
         }
+        return false;
     }
 
     public void removeDeviceFromParkingLot(String deviceId){
