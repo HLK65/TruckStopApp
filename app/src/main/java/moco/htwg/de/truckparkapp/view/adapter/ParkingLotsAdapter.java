@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import moco.htwg.de.truckparkapp.R;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
@@ -53,9 +54,19 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
     public void onBindViewHolder(ParkingLotsAdapter.MyViewHolder holder, int position) {
         ParkingLot parkingLot = (ParkingLot) new ArrayList(parkingLotList).get(position);
         holder.name.setText(parkingLot.getName());
+        double distance = parkingLot.getDistanceFromCurrentLocationInKilometres();
+        double timeRemaining = distance/70;
+        long minutes = (long) (timeRemaining*60);
+        if(minutes > 60){
+            long hours = TimeUnit.MINUTES.toHours(minutes);
+            long restMinutes = minutes%60;
+            holder.kilometres.setText(decimalFormat.format(distance) + " /\n" + hours+" h "+restMinutes+" min");
+        } else {
+            holder.kilometres.setText(decimalFormat.format(distance) + " /\n" + minutes+" min");
+        }
 
-        holder.parkinglotsFree.setText("Frei: " + (parkingLot.getMaxParkingLots() - parkingLot.getDevicesAtParkingArea().size()));
-        holder.kilometres.setText("Entf. " + decimalFormat.format(parkingLot.getDistanceFromCurrentLocationInKilometres()));
+        holder.parkinglotsFree.setText("Frei: " + (parkingLot.getMaxParkingLots() - parkingLot.getDevicesAtParkingArea().size())+" / "+parkingLot.getMaxParkingLots());
+
     }
 
     @Override
