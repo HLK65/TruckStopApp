@@ -90,8 +90,12 @@ public class InputFreeSlotsFragment extends Fragment {
                 parkingLot.addDeviceToParkingLot("userUpdate." + System.currentTimeMillis());
             }
             TruckParkLot.getInstance().updateParkingLot(parkingLot)
-                    .addOnSuccessListener(aVoid -> Snackbar.make(view, R.string.updatedFreeSlots, Snackbar.LENGTH_LONG)
-                            /*.setAction("Action", null)*/.show());
+                    .addOnSuccessListener(aVoid -> {
+                        if(view != null){
+                            Snackbar.make(view, R.string.updatedFreeSlots, Snackbar.LENGTH_LONG)
+                            /*.setAction("Action", null)*/.show();
+                        }
+                    });
         });
 
         TextView textView = view.findViewById(R.id.how_many_trucks);
