@@ -94,7 +94,27 @@ public class InputFreeSlotsFragment extends Fragment {
         textView.setText(textViewString);
 
         DocumentReference parkingLotRef = database.subscribeParkingLot(parkingLotId);
-        parkingLotRef.get().addOnSuccessListener(documentSnapshot -> {
+        parkingLotRef.addSnapshotListener((documentSnapshot, e) -> {
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e);
+                return;
+            }
+
+            if (documentSnapshot != null && documentSnapshot.exists()) {
+                Log.d(TAG, "Current data: " + documentSnapshot.getData());
+                parkingLot = documentSnapshot.toObject(ParkingLot.class);
+                np.setMinValue(parkingLot.getDevicesAtParkingArea().size());
+                np.setMaxValue(parkingLot.getMaxParkingLots());
+                //dont change value after user changed it
+                if (numberPickerValue == 0) {
+                    np.setValue(parkingLot.getDevicesAtParkingArea().size());
+                }
+                np.setEnabled(true);
+            } else {
+                Log.d(TAG, "Current data: null");
+            }
+        });
+        /*parkingLotRef.get().addOnSuccessListener(documentSnapshot -> {
             parkingLot = documentSnapshot.toObject(ParkingLot.class);
             np.setMinValue(parkingLot.getDevicesAtParkingArea().size());
             np.setMaxValue(parkingLot.getMaxParkingLots());
@@ -103,7 +123,7 @@ public class InputFreeSlotsFragment extends Fragment {
                 np.setValue(parkingLot.getDevicesAtParkingArea().size());
             }
             np.setEnabled(true);
-        }).addOnFailureListener(e -> Log.w(TAG, e));
+        }).addOnFailureListener(e -> Log.w(TAG, e));*/
 
         // Inflate the layout for this fragment
         return view;
