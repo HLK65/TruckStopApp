@@ -17,11 +17,9 @@ import com.google.maps.model.LatLng;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 import moco.htwg.de.truckparkapp.persistence.Database;
@@ -73,7 +71,8 @@ public class TruckParkLot {
         });
     }
 
-    private void liveUpdateParkingLotsOnRoute(final ParkingLot parkingLot){
+    public void liveUpdateParkingLotsOnRoute(final ParkingLot parkingLot){
+
         DocumentReference documentReference = database.getRealtimeUpdates("parkingLots", parkingLot.getName(), parkingLotsOnRoute);
         documentReference.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
@@ -83,7 +82,15 @@ public class TruckParkLot {
                 }
                 if(documentSnapshot != null && documentSnapshot.exists()){
                     ParkingLot updatedParkingLot = documentSnapshot.toObject(ParkingLot.class);
-
+                    int index = -1;
+                    for(ParkingLot foundParkingLot : parkingLotsOnRoute){
+                        if(updatedParkingLot.getName().equals(foundParkingLot.getName())){
+                            index = parkingLotsOnRoute.indexOf(foundParkingLot);
+                        }
+                    }
+                    parkingLotsOnRoute.remove(index);
+                    parkingLotsOnRoute.add(updatedParkingLot);
+                    sortParkingLotsOnRouteByDistance();
                     parkingLotsAdapter.notifyDataSetChanged();
                     Log.d(TAG, "Updated Data: " + updatedParkingLot.toString());
                 } else {
@@ -142,8 +149,8 @@ public class TruckParkLot {
         database.addParkingLot(parkingLot);
     }
 
-    public void updateParkingLot(ParkingLot parkingLot){
-        database.updateParkingLot(parkingLot);
+    public Task<Void> updateParkingLot(ParkingLot parkingLot){
+        return database.updateParkingLot(parkingLot);
     }
 
 

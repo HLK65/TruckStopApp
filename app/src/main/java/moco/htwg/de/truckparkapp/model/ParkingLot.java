@@ -147,8 +147,11 @@ public class ParkingLot {
         return "ParkingLot{" +
                 "name='" + name + '\'' +
                 ", parkingLotDimensions=" + parkingLotDimensions +
+                ", devicesAtParkingArea=" + devicesAtParkingArea +
                 ", maxParkingLots=" + maxParkingLots +
+                ", drivingDirection=" + drivingDirection +
                 ", geofencePosition=" + geofencePosition +
+                ", distanceFromCurrentLocationInKilometres=" + distanceFromCurrentLocationInKilometres +
                 '}';
     }
 

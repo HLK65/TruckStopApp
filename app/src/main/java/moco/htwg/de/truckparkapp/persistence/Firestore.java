@@ -19,7 +19,7 @@ public class Firestore implements Database {
 
     private final String TAG = this.getClass().getSimpleName();
 
-    FirebaseFirestore firebaseFirestore;
+    private FirebaseFirestore firebaseFirestore;
 
     Firestore() {
         firebaseFirestore = FirebaseFirestore.getInstance();
