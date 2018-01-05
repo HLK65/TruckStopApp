@@ -72,9 +72,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             break;
 
                         case "START_MAP":
-                            destinationSteet = intent.getStringExtra("DESTINATION_STREET");
-                            destinationPostal = intent.getStringExtra("DESTINATION_POSTAL");
-                            destinationPlace = intent.getStringExtra("DESTINATION_PLACE");
+                            if (intent.getStringExtra("DESTINATION_STREET") != null
+                                    && intent.getStringExtra("DESTINATION_POSTAL") != null
+                                    && intent.getStringExtra("DESTINATION_PLACE") != null) {
+                                destinationSteet = intent.getStringExtra("DESTINATION_STREET");
+                                destinationPostal = intent.getStringExtra("DESTINATION_POSTAL");
+                                destinationPlace = intent.getStringExtra("DESTINATION_PLACE");
+                            }
 
                             navigationView.getMenu().findItem(R.id.nav_map).setChecked(true);
 

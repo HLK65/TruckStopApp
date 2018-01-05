@@ -2,9 +2,11 @@ package moco.htwg.de.truckparkapp.view;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -91,10 +93,13 @@ public class InputFreeSlotsFragment extends Fragment {
             }
             TruckParkLot.getInstance().updateParkingLot(parkingLot)
                     .addOnSuccessListener(aVoid -> {
-                        if(view != null){
-                            Snackbar.make(view, R.string.updatedFreeSlots, Snackbar.LENGTH_LONG)
-                            /*.setAction("Action", null)*/.show();
+                        if (view != null) {
+                            Snackbar.make(view, R.string.updatedFreeSlots, Snackbar.LENGTH_LONG).show();
                         }
+                        Intent intent = new Intent("FRAGMENT_INTENT");
+                        intent.putExtra("FragmentAction", "START_MAP");
+
+                        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
                     });
         });
 
