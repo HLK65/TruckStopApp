@@ -15,6 +15,8 @@ import android.widget.TextView;
 
 import com.google.firebase.firestore.DocumentReference;
 
+import java.util.List;
+
 import moco.htwg.de.truckparkapp.R;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 import moco.htwg.de.truckparkapp.persistence.Database;
@@ -75,10 +77,12 @@ public class InputFreeSlotsFragment extends Fragment {
 
         NumberPicker np = view.findViewById(R.id.numberPicker);
         np.setEnabled(false); //wait for db data
-/*        np.setOnValueChangedListener((numberPicker, i, i1) -> Toast.makeText(getContext(),
-                "selected number " + numberPicker.getValue(), Toast.LENGTH_SHORT).show());*/
+        np.setOnValueChangedListener((numberPicker, i, i1) -> numberPickerValue = numberPicker.getValue()
+                /*Toast.makeText(getContext(),
+                "selected number " + numberPicker.getValue(), Toast.LENGTH_SHORT).show()*/);
 
         Button submitButton = view.findViewById(R.id.button_submit_free_slots);
+        submitButton.setEnabled(false);
         submitButton.setOnClickListener(v -> {
             while (parkingLot.getDevicesAtParkingArea().size() < np.getValue()) {
                 parkingLot.addDeviceToParkingLot("userUpdate." + System.currentTimeMillis());
@@ -103,27 +107,21 @@ public class InputFreeSlotsFragment extends Fragment {
             if (documentSnapshot != null && documentSnapshot.exists()) {
                 Log.d(TAG, "Current data: " + documentSnapshot.getData());
                 parkingLot = documentSnapshot.toObject(ParkingLot.class);
-                np.setMinValue(parkingLot.getDevicesAtParkingArea().size());
+                List<String> devicesCopy = parkingLot.getDevicesAtParkingArea();
+                devicesCopy.removeIf(s -> s.contains("userUpdate."));
+                np.setMinValue(devicesCopy.size());
                 np.setMaxValue(parkingLot.getMaxParkingLots());
                 //dont change value after user changed it
+                Log.v(TAG, "numberPickerValue: " + numberPickerValue);
                 if (numberPickerValue == 0) {
                     np.setValue(parkingLot.getDevicesAtParkingArea().size());
                 }
                 np.setEnabled(true);
+                submitButton.setEnabled(true);
             } else {
                 Log.d(TAG, "Current data: null");
             }
         });
-        /*parkingLotRef.get().addOnSuccessListener(documentSnapshot -> {
-            parkingLot = documentSnapshot.toObject(ParkingLot.class);
-            np.setMinValue(parkingLot.getDevicesAtParkingArea().size());
-            np.setMaxValue(parkingLot.getMaxParkingLots());
-            //dont change value after user changed it
-            if (numberPickerValue == 0) {
-                np.setValue(parkingLot.getDevicesAtParkingArea().size());
-            }
-            np.setEnabled(true);
-        }).addOnFailureListener(e -> Log.w(TAG, e));*/
 
         // Inflate the layout for this fragment
         return view;
