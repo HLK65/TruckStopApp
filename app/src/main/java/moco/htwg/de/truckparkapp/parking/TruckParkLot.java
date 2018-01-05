@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 import moco.htwg.de.truckparkapp.persistence.Database;
@@ -88,8 +89,11 @@ public class TruckParkLot {
                             index = parkingLotsOnRoute.indexOf(foundParkingLot);
                         }
                     }
-                    parkingLotsOnRoute.remove(index);
-                    parkingLotsOnRoute.add(updatedParkingLot);
+                    if(index != -1){
+                        parkingLotsOnRoute.remove(index);
+                        parkingLotsOnRoute.add(updatedParkingLot);
+                    }
+
                     sortParkingLotsOnRouteByDistance();
                     parkingLotsAdapter.notifyDataSetChanged();
                     Log.d(TAG, "Updated Data: " + updatedParkingLot.toString());
@@ -110,10 +114,17 @@ public class TruckParkLot {
         ParkingLot parkingLot = null;
         for(String parkingLotName : parkingLotsOnRouteNames){
             parkingLot = this.parkingLots.get(parkingLotName);
-            if(!this.parkingLotsOnRoute.contains(parkingLot)){
+            ParkingLot finalParkingLot = parkingLot;
+
+            Optional<ParkingLot> optionalParkinglot = this.parkingLotsOnRoute.stream()
+                    .filter(parkingLot1 -> parkingLot1
+                            .getName().equals(finalParkingLot.getName()))
+                    .findFirst();
+
+            if(!optionalParkinglot.isPresent()){
                 this.parkingLotsOnRoute.add(parkingLot);
             }
-            if(!this.geofenceList.contains(parkingLot)){
+            if(!optionalParkinglot.isPresent()){
                 this.geofenceList.add(createGeofence(parkingLot));
             }
             liveUpdateParkingLotsOnRoute(parkingLot);
