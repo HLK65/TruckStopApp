@@ -32,8 +32,6 @@ import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -124,6 +122,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
     private FragmentActivity activity;
 
+    private View view;
+
     public MapsFragment() {
         // Required empty public constructor
     }
@@ -159,7 +159,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_maps, container, false);
+        view = inflater.inflate(R.layout.fragment_maps, container, false);
         context = view.getContext();
         recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
@@ -429,7 +429,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                 super.onLocationResult(locationResult);
                 Location location = locationResult.getLastLocation();
                 TruckParkLot.getInstance().calculateDistanceToParkingLot(new com.google.maps.model.LatLng(location.getLatitude(), location.getLongitude()));
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM));
+                map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
                 if (parkingLotPolygon != null) {
                     boolean containsLocation = PolyUtil.containsLocation(new LatLng(location.getLatitude(), location.getLongitude()), parkingLotPolygon.getPoints(), true);
                     if (containsLocation) {
@@ -442,12 +442,15 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                             if (activity != null && parkingLot.addDeviceToParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID))) {
                                 Log.d(TAG, "onLocationResult: " + parkingLot.getName());
                                 truckParkLot.updateParkingLot(parkingLot);
+
+                                // ask for precise parking area usage
+                                Intent intent = new Intent("FRAGMENT_INTENT");
+                                intent.putExtra("FragmentAction", "START_INPUT_FREE_SLOTS");
+                                intent.putExtra("PARKING_LOT_ID", parkingLot.getName());
+
+                                Log.d(TAG, "sending " + intent.getAction() + " broadcast");
+                                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
                             }
-                            // ask for precise parking area usage
-                            Intent intent = new Intent();
-                            intent.setAction("START_INPUT_FREE_SLOTS");
-                            Log.d(TAG, "sending " + intent.getAction() + " broadcast");
-                            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
 
                         }
                     }
