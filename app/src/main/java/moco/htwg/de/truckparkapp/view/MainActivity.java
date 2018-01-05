@@ -51,13 +51,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .replace(R.id.content, MapsFragment.newInstance(), MapsFragment.class.getSimpleName())
                 .commit();
 
+        /**
+         * Fragment intent listener used to request fragment change from within fragment
+         */
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent != null) {
+                    switch (intent.getStringExtra("FragmentAction")) {
+                        // ask for precise parking area usage on arrival
+                        case "START_INPUT_FREE_SLOTS": {
+                            parkingLotId = intent.getStringExtra("PARKING_LOT_ID");
+                            navigationView.getMenu().findItem(R.id.nav_inputSlots).setEnabled(true).setChecked(true);
+                            fragmentManager.beginTransaction()
+                                    .replace(R.id.content, InputFreeSlotsFragment.newInstance(parkingLotId), InputFreeSlotsFragment.class.getSimpleName())
+                                    .commit();
+                            break;
+                        }
+                    }
+                }
+            }
+        }, new IntentFilter("FRAGMENT_INTENT"));
 
-        // ask for precise parking area usage on arrival
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
 
-                if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")) {
+                /*if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")) {
                     Log.d(TAG, "onReceive: start parking");
                     parkingLotId = intent.getStringExtra("PARKING_LOT_ID");
 
@@ -67,10 +87,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     fragmentManager.beginTransaction()
                             .replace(R.id.content, InputFreeSlotsFragment.newInstance(parkingLotId), InputFreeSlotsFragment.class.getSimpleName())
                             .commit();
-                } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")) {
+                } else*/
+
+                // hide InputFreeSlotsFragment when leaving geofence of parking area
+                if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")) {
                     Log.d(TAG, "onReceive: stop parking");
                     parkingLotId = "";
-                    NavigationView navigationView = findViewById(R.id.nav_view);
 
                     if (fragmentManager.findFragmentByTag(InputFreeSlotsFragment.class.getSimpleName()) != null &&
                             fragmentManager.findFragmentByTag(InputFreeSlotsFragment.class.getSimpleName()).isVisible()) {
@@ -80,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         navigationView.getMenu().findItem(R.id.nav_map).setChecked(true);
                     }
 
-                    navigationView.getMenu().findItem(R.id.nav_inputSlots).setEnabled(false);
+                    navigationView.getMenu().findItem(R.id.nav_inputSlots).setChecked(false).setEnabled(false);
                 }
             }
         }, new IntentFilter(GeofenceTransitionsIntentService.PARKING_BROADCAST));
