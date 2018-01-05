@@ -1,12 +1,16 @@
 package moco.htwg.de.truckparkapp.persistence;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.Arrays;
 import java.util.List;
 
 import moco.htwg.de.truckparkapp.model.ParkingLot;
@@ -19,7 +23,7 @@ public class Firestore implements Database {
 
     private final String TAG = this.getClass().getSimpleName();
 
-    FirebaseFirestore firebaseFirestore;
+    private FirebaseFirestore firebaseFirestore;
 
     Firestore() {
         firebaseFirestore = FirebaseFirestore.getInstance();
@@ -46,6 +50,22 @@ public class Firestore implements Database {
                 .set(parkingLot)
                 .addOnSuccessListener(documentReference -> Log.d("FirestoreService", "ParkingLot updated with Name: " + parkingLot.getName()))
                 .addOnFailureListener(e -> Log.w(TAG, parkingLot.getName() + "could not be saved"));
+    }
+
+    @Override
+    public void addDevicesToParkingArea(String parkingLotName, List<String> deviceIds) {
+        firebaseFirestore.collection("parkingLots").document(parkingLotName).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    List<String> devices = documentSnapshot
+                            .toObject(ParkingLot.class)
+                            .getDevicesAtParkingArea();
+                    deviceIds.addAll(devices);
+
+                    firebaseFirestore.collection("parkingLots").document(parkingLotName).collection("devicesAtParkingArea").add(deviceIds)
+                            .addOnSuccessListener(documentReference -> Log.d(TAG, "addDeviceToParkingArea: success"))
+                            .addOnFailureListener(e -> Log.w(TAG, "addDeviceToParkingArea: " + e));
+                })
+                .addOnFailureListener(e -> Log.w(TAG, "addDevicesToParkingArea: ", e));
     }
 
     @Override

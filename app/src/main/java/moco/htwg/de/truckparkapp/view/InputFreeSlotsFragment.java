@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.google.firebase.firestore.DocumentReference;
 
+import java.util.Arrays;
 import java.util.List;
 
 import moco.htwg.de.truckparkapp.R;
@@ -85,11 +86,13 @@ public class InputFreeSlotsFragment extends Fragment {
         submitButton.setEnabled(false);
         submitButton.setOnClickListener(v -> {
             while (parkingLot.getDevicesAtParkingArea().size() < np.getValue()) {
-                parkingLot.addDeviceToParkingLot("userUpdate." + System.currentTimeMillis());
+//                parkingLot.addDeviceToParkingLot("userUpdate." + System.currentTimeMillis());
+                database.addDevicesToParkingArea(parkingLotId, Arrays.asList("userUpdate." + System.currentTimeMillis()));
             }
-            database.updateParkingLot(parkingLot)
+
+            /*database.updateParkingLot(parkingLot)
                     .addOnSuccessListener(aVoid -> Snackbar.make(view, R.string.updatedFreeSlots, Snackbar.LENGTH_LONG)
-                            /*.setAction("Action", null)*/.show());
+                            *//*.setAction("Action", null)*//*.show());*/
         });
 
         TextView textView = view.findViewById(R.id.how_many_trucks);

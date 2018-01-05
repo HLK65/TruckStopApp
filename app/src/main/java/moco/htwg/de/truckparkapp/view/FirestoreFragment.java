@@ -24,10 +24,15 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import moco.htwg.de.truckparkapp.R;
+import moco.htwg.de.truckparkapp.persistence.Database;
+import moco.htwg.de.truckparkapp.persistence.DatabaseFactory;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -47,6 +52,7 @@ public class FirestoreFragment extends Fragment {
     private final String TAG = this.getClass().getSimpleName();
     private OnFragmentInteractionListener mListener;
     private FirebaseFirestore db;
+    private Database database;
 
     public FirestoreFragment() {
         // Required empty public constructor
@@ -78,6 +84,7 @@ public class FirestoreFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }*/
         db = FirebaseFirestore.getInstance();
+        database = DatabaseFactory.getDatabase(DatabaseFactory.Type.FIRESTORE);
     }
 
     @Override
@@ -93,6 +100,8 @@ public class FirestoreFragment extends Fragment {
                 Snackbar.make(view, "Replace with your own action 123", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
                 save();
+
+                database.addDevicesToParkingArea("HTWG", Arrays.asList("custom", "custom", "custom3"));
             }
         });
 

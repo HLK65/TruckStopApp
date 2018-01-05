@@ -23,4 +23,6 @@ public interface Database {
 
     DocumentReference subscribeParkingLot(String parkingLotId);
 
+    void addDevicesToParkingArea(String parkingLotName, List<String> deviceIds);
+
 }
