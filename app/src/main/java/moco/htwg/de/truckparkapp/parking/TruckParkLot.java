@@ -83,7 +83,8 @@ public class TruckParkLot {
                 }
                 if(documentSnapshot != null && documentSnapshot.exists()){
                     ParkingLot updatedParkingLot = documentSnapshot.toObject(ParkingLot.class);
-                    int index = -1;
+                    /*int index = -1;
+
                     for(ParkingLot foundParkingLot : parkingLotsOnRoute){
                         if(updatedParkingLot.getName().equals(foundParkingLot.getName())){
                             index = parkingLotsOnRoute.indexOf(foundParkingLot);
@@ -93,7 +94,9 @@ public class TruckParkLot {
                         parkingLotsOnRoute.remove(index);
                         parkingLotsOnRoute.add(updatedParkingLot);
                     }
-
+                    */
+                    parkingLotsOnRoute.remove(parkingLot);
+                    parkingLotsOnRoute.add(updatedParkingLot);
                     sortParkingLotsOnRouteByDistance();
                     parkingLotsAdapter.notifyDataSetChanged();
                     Log.d(TAG, "Updated Data: " + updatedParkingLot.toString());
@@ -116,17 +119,25 @@ public class TruckParkLot {
             parkingLot = this.parkingLots.get(parkingLotName);
             ParkingLot finalParkingLot = parkingLot;
 
-            Optional<ParkingLot> optionalParkinglot = this.parkingLotsOnRoute.stream()
+            /*Optional<ParkingLot> optionalParkinglot = this.parkingLotsOnRoute.stream()
                     .filter(parkingLot1 -> parkingLot1
                             .getName().equals(finalParkingLot.getName()))
                     .findFirst();
 
-            if(!optionalParkinglot.isPresent()){
+            System.out.println("contains: " + parkingLotsOnRoute.contains(parkingLot));
+            */
+            if(!parkingLotsOnRoute.contains(parkingLot)){
                 this.parkingLotsOnRoute.add(parkingLot);
             }
-            if(!optionalParkinglot.isPresent()){
+            if(!geofenceList.contains(parkingLot)){
                 this.geofenceList.add(createGeofence(parkingLot));
             }
+            /*if(!optionalParkinglot.isPresent()){
+
+            }
+            if(!optionalParkinglot.isPresent()){
+
+            }*/
             liveUpdateParkingLotsOnRoute(parkingLot);
         }
         return parkingLotsOnRouteNames.size() == this.parkingLotsOnRoute.size();
@@ -163,8 +174,6 @@ public class TruckParkLot {
     public Task<Void> updateParkingLot(ParkingLot parkingLot){
         return database.updateParkingLot(parkingLot);
     }
-
-
 
     public List<ParkingLot> getParkingLotsOnRoute() {
         sortParkingLotsOnRouteByDistance();
