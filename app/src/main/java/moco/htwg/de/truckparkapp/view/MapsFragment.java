@@ -316,24 +316,15 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                         Request.Method.POST,
                         getString(R.string.rest_server_url)+"/parkinglots",
                         new JSONObject(params),
-                        new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Iterator<String> keys = response.keys();
-                        pendingGeofenceTask = PendingGeofenceTask.ADD;
-                        boolean addedToParkingListOnRouteList = TruckParkLot.getInstance().getParkingLotsOnRouteAndAddToParkingListOnRoute(keys, parkingLotsAdapter);
-                        if(addedToParkingListOnRouteList){
-                            parkingLotsAdapter.notifyDataSetChanged();
-                            performPendingGeofenceTask();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        System.out.println(error);
-                    }
-                });
+                        response -> {
+                            Iterator<String> keys = response.keys();
+                            pendingGeofenceTask = PendingGeofenceTask.ADD;
+                            boolean addedToParkingListOnRouteList = TruckParkLot.getInstance().getParkingLotsOnRouteAndAddToParkingListOnRoute(keys, parkingLotsAdapter);
+                            if(addedToParkingListOnRouteList){
+                                parkingLotsAdapter.notifyDataSetChanged();
+                                performPendingGeofenceTask();
+                            }
+                        }, error -> System.out.println(error));
                 jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(10000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
                 AppController.getInstance().addToRequestQueue(jsonObjectRequest);
             }
