@@ -109,14 +109,12 @@ public class InputFreeSlotsFragment extends Fragment {
                 parkingLot = documentSnapshot.toObject(ParkingLot.class);
                 List<String> devicesCopy = parkingLot.getDevicesAtParkingArea();
                 devicesCopy.removeIf(s -> s.contains("userUpdate."));
+                //dont change value after user changed it
+                np.setEnabled(true);
+                if (numberPickerValue == 0)
+                    np.setValue(parkingLot.getDevicesAtParkingArea().size());
                 np.setMinValue(devicesCopy.size());
                 np.setMaxValue(parkingLot.getMaxParkingLots());
-                //dont change value after user changed it
-                Log.v(TAG, "numberPickerValue: " + numberPickerValue);
-                if (numberPickerValue == 0) {
-                    np.setValue(parkingLot.getDevicesAtParkingArea().size());
-                }
-                np.setEnabled(true);
                 submitButton.setEnabled(true);
             } else {
                 Log.d(TAG, "Current data: null");
