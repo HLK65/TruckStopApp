@@ -1,11 +1,9 @@
 package moco.htwg.de.truckparkapp.view;
 
 import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,16 +51,13 @@ public class DestinationFragment extends Fragment {
         getRouteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Fragment fragment = MapsFragment.newInstance(
-                        destinationSteet.getText().toString(),
-                        destinationPostal.getText().toString(),
-                        destinationPlace.getText().toString());
+                Intent intent = new Intent("FRAGMENT_INTENT");
+                intent.putExtra("FragmentAction", "START_MAP");
+                intent.putExtra("DESTINATION_STREET", destinationSteet.getText().toString());
+                intent.putExtra("DESTINATION_POSTAL", destinationPostal.getText().toString());
+                intent.putExtra("DESTINATION_PLACE", destinationPlace.getText().toString());
 
-                FragmentManager fragmentManager = getActivity().getFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.replace(R.id.content, fragment);
-                fragmentTransaction.addToBackStack(null);
-                fragmentTransaction.commit();
+                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
             }
         });
         return view;
