@@ -132,10 +132,12 @@ public class ParkingLot {
         this.drivingDirection = drivingDirection;
     }
 
+    @Exclude
     public double getDistanceFromCurrentLocationInKilometres() {
         return distanceFromCurrentLocationInKilometres;
     }
 
+    @Exclude
     public void setDistanceFromCurrentLocationInKilometres(double distanceFromCurrentLocationInKilometres) {
         this.distanceFromCurrentLocationInKilometres = distanceFromCurrentLocationInKilometres;
     }
@@ -145,8 +147,11 @@ public class ParkingLot {
         return "ParkingLot{" +
                 "name='" + name + '\'' +
                 ", parkingLotDimensions=" + parkingLotDimensions +
+                ", devicesAtParkingArea=" + devicesAtParkingArea +
                 ", maxParkingLots=" + maxParkingLots +
+                ", drivingDirection=" + drivingDirection +
                 ", geofencePosition=" + geofencePosition +
+                ", distanceFromCurrentLocationInKilometres=" + distanceFromCurrentLocationInKilometres +
                 '}';
     }
 

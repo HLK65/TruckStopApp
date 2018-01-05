@@ -20,6 +20,7 @@ import java.util.List;
 
 import moco.htwg.de.truckparkapp.R;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
+import moco.htwg.de.truckparkapp.parking.TruckParkLot;
 import moco.htwg.de.truckparkapp.persistence.Database;
 import moco.htwg.de.truckparkapp.persistence.DatabaseFactory;
 
@@ -88,7 +89,7 @@ public class InputFreeSlotsFragment extends Fragment {
             while (parkingLot.getDevicesAtParkingArea().size() < np.getValue()) {
                 parkingLot.addDeviceToParkingLot("userUpdate." + System.currentTimeMillis());
             }
-            database.updateParkingLot(parkingLot)
+            TruckParkLot.getInstance().updateParkingLot(parkingLot)
                     .addOnSuccessListener(aVoid -> Snackbar.make(view, R.string.updatedFreeSlots, Snackbar.LENGTH_LONG)
                             /*.setAction("Action", null)*/.show());
         });
