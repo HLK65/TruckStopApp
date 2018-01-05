@@ -445,15 +445,16 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                     if (containsLocation) {
                         if(parkingLot != null){
                             //TODO think about a more anonymous way to identify a device (e.g. uuid)
-                            if(activity != null){
-                                parkingLot.addDeviceToParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID));
+                            /*
+                             * check if device is already located at parking lot.
+                             * If no, device will be added to parkinglot object and database entry will be updated. otherwise nothing happens
+                             */
+                            if(activity != null && parkingLot.addDeviceToParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID))){
+                                Log.d(TAG, "onLocationResult: " + parkingLot.getName());
+                                truckParkLot.updateParkingLot(parkingLot);
                             }
-                            Log.d(TAG, "onLocationResult: " + parkingLot.getName());
-                            truckParkLot.updateParkingLot(parkingLot);
                         }
-                    } else if (!containsLocation) {
                     }
-
                 }
             }
         };
