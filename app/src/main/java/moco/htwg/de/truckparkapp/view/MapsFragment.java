@@ -5,15 +5,12 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.PendingIntent;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,7 +20,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
-
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -60,26 +56,20 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polygon;
-
-
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-
 import com.google.maps.android.PolyUtil;
 import com.google.maps.model.DirectionsResult;
 
-
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import moco.htwg.de.truckparkapp.R;
 import moco.htwg.de.truckparkapp.app.AppController;
@@ -87,7 +77,6 @@ import moco.htwg.de.truckparkapp.direction.DirectionApi;
 import moco.htwg.de.truckparkapp.direction.DirectionApiFactory;
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 import moco.htwg.de.truckparkapp.parking.TruckParkLot;
-
 import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
 import moco.htwg.de.truckparkapp.view.adapter.ParkingLotsAdapter;
 
@@ -104,9 +93,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     public static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     public static float DEFAULT_ZOOM = 17.0f;
     private final String TAG = this.getClass().getSimpleName();
+    RecyclerView recyclerView;
     private GoogleMap map;
     private MapView mapView;
-    RecyclerView recyclerView;
     private boolean locationPermissionGranted;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Location lastKnownPosition;
@@ -459,6 +448,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                             if(activity != null){
                                 parkingLot.addDeviceToParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID));
                             }
+                            Log.d(TAG, "onLocationResult: " + parkingLot.getName());
                             truckParkLot.updateParkingLot(parkingLot);
                         }
                     } else if (!containsLocation) {

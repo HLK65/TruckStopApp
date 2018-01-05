@@ -2,17 +2,12 @@ package moco.htwg.de.truckparkapp.persistence;
 
 import android.util.Log;
 
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
-import java.util.Set;
 
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 
@@ -26,34 +21,36 @@ public class Firestore implements Database {
 
     FirebaseFirestore firebaseFirestore;
 
-
-    Firestore(){
+    Firestore() {
         firebaseFirestore = FirebaseFirestore.getInstance();
     }
 
-    public void addParkingLot(ParkingLot parkingLot){
-        firebaseFirestore.collection("parkingLots")
-            .add(parkingLot)
-            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                @Override
-                public void onSuccess(DocumentReference documentReference) {
-                    Log.d("FirestoreService", "DocumentSnapshot added with ID: " + documentReference.getId());
-                }
-            });
+    public Task<DocumentReference> addParkingLot(ParkingLot parkingLot) {
+        return firebaseFirestore.collection("parkingLots")
+                .add(parkingLot)
+                .addOnSuccessListener(documentReference -> Log.d("FirestoreService", "DocumentSnapshot added with ID: " + documentReference.getId()))
+                .addOnFailureListener(e -> Log.w(TAG, parkingLot.getName() + "could not be saved"));
     }
 
-    public Task<QuerySnapshot> getParkingLots(String collection){
+    public Task<QuerySnapshot> getParkingLots(String collection) {
         return firebaseFirestore.collection(collection).get();
     }
 
-    public DocumentReference getRealtimeUpdates(String collection, String document, final List<ParkingLot> parkingLotSet){
+    public DocumentReference getRealtimeUpdates(String collection, String document, final List<ParkingLot> parkingLotSet) {
         return firebaseFirestore.collection(collection).document(document);
-
     }
 
     @Override
-    public void updateParkingLot(ParkingLot parkingLot) {
-        firebaseFirestore.collection("parkingLots").document(parkingLot.getName()).set(parkingLot);
+    public Task<Void> updateParkingLot(ParkingLot parkingLot) {
+        return firebaseFirestore.collection("parkingLots").document(parkingLot.getName())
+                .set(parkingLot)
+                .addOnSuccessListener(documentReference -> Log.d("FirestoreService", "ParkingLot updated with Name: " + parkingLot.getName()))
+                .addOnFailureListener(e -> Log.w(TAG, parkingLot.getName() + "could not be saved"));
+    }
+
+    @Override
+    public DocumentReference subscribeParkingLot(String parkingLotId) {
+        return firebaseFirestore.collection("parkingLots").document(parkingLotId);
     }
 
 }

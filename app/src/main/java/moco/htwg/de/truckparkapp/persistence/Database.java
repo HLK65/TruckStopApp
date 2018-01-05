@@ -6,7 +6,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
-import java.util.Set;
 
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 
@@ -16,9 +15,12 @@ import moco.htwg.de.truckparkapp.model.ParkingLot;
 
 public interface Database {
 
-    void addParkingLot(ParkingLot parkingLot);
+    Task<DocumentReference> addParkingLot(ParkingLot parkingLot);
     Task<QuerySnapshot> getParkingLots(String collection);
     DocumentReference getRealtimeUpdates(String collection, String document, final List<ParkingLot> parkingLotSet);
-    void updateParkingLot(ParkingLot parkingLot);
+
+    Task<Void> updateParkingLot(ParkingLot parkingLot);
+
+    DocumentReference subscribeParkingLot(String parkingLotId);
 
 }

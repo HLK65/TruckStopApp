@@ -29,6 +29,7 @@
     <string name="could_not_read_directions_api_toast">Directions API konnte nicht gelesen werden. Bitte versuchen Sie es erneut</string>
 
     <string name="menu_input_free_slots">Free Slots</string>
-    <string name="how_many_trucks">Wie viele LKWs befinden sich auf dem Parkplatz?</string>
+    <string name="how_many_trucks">Wie viele LKWs befinden sich auf dem Parkplatz %s?</string>
     <string name="button_send">Absenden</string>
+    <string name="updatedFreeSlots">Danke, Anzahl freier Plätze aktuallisiert</string>
 </resources>

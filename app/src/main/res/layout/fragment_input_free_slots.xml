@@ -11,13 +11,7 @@
         android:text="@string/enter_free_slots" />
 
     <TextView
-        android:id="@+id/textView2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/current_truck_park_slot" />
-
-    <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/how_many_trucks"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/how_many_trucks" />

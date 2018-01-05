@@ -4,15 +4,21 @@ import android.app.Fragment;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.NumberPicker;
-import android.widget.Toast;
+import android.widget.TextView;
+
+import com.google.firebase.firestore.DocumentReference;
 
 import moco.htwg.de.truckparkapp.R;
+import moco.htwg.de.truckparkapp.model.ParkingLot;
+import moco.htwg.de.truckparkapp.persistence.Database;
+import moco.htwg.de.truckparkapp.persistence.DatabaseFactory;
 
 
 /**
@@ -24,22 +30,11 @@ import moco.htwg.de.truckparkapp.R;
  * create an instance of this fragment.
  */
 public class InputFreeSlotsFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
+    private static final String PARKING_LOT_ID = "parkingLotId";
     private final String TAG = this.getClass().getSimpleName();
-
-    NumberPicker.OnValueChangeListener onValueChangeListener =
-            new NumberPicker.OnValueChangeListener() {
-                @Override
-                public void onValueChange(NumberPicker numberPicker, int i, int i1) {
-                    Toast.makeText(getContext(),
-                            "selected number " + numberPicker.getValue(), Toast.LENGTH_SHORT);
-                    Log.d(TAG, "onValueChange: " + numberPicker.getValue());
-                }
-            };
-    // TODO: Rename and change types of parameters
-    private String mParam1;
+    private ParkingLot parkingLot;
+    private int numberPickerValue = 0;
+    private String parkingLotId;
     private OnFragmentInteractionListener mListener;
 
     public InputFreeSlotsFragment() {
@@ -50,14 +45,14 @@ public class InputFreeSlotsFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
+     * @param parkingLotId db-Id (=name) of parking lot.
      * @return A new instance of fragment InputFreeSlotsFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static InputFreeSlotsFragment newInstance(String param1) {
+    public static InputFreeSlotsFragment newInstance(String parkingLotId) {
         InputFreeSlotsFragment fragment = new InputFreeSlotsFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
+        args.putString(PARKING_LOT_ID, parkingLotId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -66,7 +61,7 @@ public class InputFreeSlotsFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
+            parkingLotId = getArguments().getString(PARKING_LOT_ID);
         }
     }
 
@@ -75,21 +70,40 @@ public class InputFreeSlotsFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_input_free_slots, container, false);
 
-        NumberPicker np = view.findViewById(R.id.numberPicker);
-        np.setMinValue(1); //at least the user is on it
-        np.setMaxValue(20); //todo depending on parking spot
-        np.setValue(10); //todo depending on calc usage
-        np.setOnValueChangedListener(onValueChangeListener);
+        Database database = DatabaseFactory.getDatabase(DatabaseFactory.Type.FIRESTORE);
+        assert database != null;
 
-        Button.OnClickListener submitOnClickListener = new Button.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NumberPicker np = view.findViewById(R.id.numberPicker);
-                np.getValue(); //todo send to db
-            }
-        };
+        NumberPicker np = view.findViewById(R.id.numberPicker);
+        np.setEnabled(false); //wait for db data
+/*        np.setOnValueChangedListener((numberPicker, i, i1) -> Toast.makeText(getContext(),
+                "selected number " + numberPicker.getValue(), Toast.LENGTH_SHORT).show());*/
+
         Button submitButton = view.findViewById(R.id.button_submit_free_slots);
-        submitButton.setOnClickListener(submitOnClickListener);
+        submitButton.setOnClickListener(v -> {
+            while (parkingLot.getDevicesAtParkingArea().size() < np.getValue()) {
+                parkingLot.addDeviceToParkingLot("userUpdate." + System.currentTimeMillis());
+            }
+            database.updateParkingLot(parkingLot)
+                    .addOnSuccessListener(aVoid -> Snackbar.make(view, R.string.updatedFreeSlots, Snackbar.LENGTH_LONG)
+                            /*.setAction("Action", null)*/.show());
+        });
+
+        TextView textView = view.findViewById(R.id.how_many_trucks);
+        String textViewString = textView.getText().toString();
+        textViewString = textViewString.replace("%s", parkingLotId);
+        textView.setText(textViewString);
+
+        DocumentReference parkingLotRef = database.subscribeParkingLot(parkingLotId);
+        parkingLotRef.get().addOnSuccessListener(documentSnapshot -> {
+            parkingLot = documentSnapshot.toObject(ParkingLot.class);
+            np.setMinValue(parkingLot.getDevicesAtParkingArea().size());
+            np.setMaxValue(parkingLot.getMaxParkingLots());
+            //dont change value after user changed it
+            if (numberPickerValue == 0) {
+                np.setValue(parkingLot.getDevicesAtParkingArea().size());
+            }
+            np.setEnabled(true);
+        }).addOnFailureListener(e -> Log.w(TAG, e));
 
         // Inflate the layout for this fragment
         return view;
