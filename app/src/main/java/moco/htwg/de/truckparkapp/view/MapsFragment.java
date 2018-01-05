@@ -141,7 +141,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         return new MapsFragment();
     }
 
-    public static MapsFragment newInstance(String destinationStreet, String destinationPostal, String destinationPlace){
+    public static MapsFragment newInstance(String destinationStreet, String destinationPostal, String destinationPlace) {
         MapsFragment fragment = new MapsFragment();
         Bundle args = new Bundle();
         args.putString("destinationStreet", destinationStreet);
@@ -178,8 +178,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         buildLocationSettingRequest();
 
 
-
-        if(getArguments() != null){
+        if (getArguments() != null) {
             Bundle bundle = getArguments();
             destinationStreet = bundle.getString("destinationStreet");
             //String destinationPostal = bundle.getString("destinationPostal");
@@ -196,13 +195,13 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
             public void onReceive(Context context, Intent intent) {
                 if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Start Parking")) {
                     parkingLot = truckParkLot.getParkingLots().get(intent.getStringExtra("PARKING_LOT_ID"));
-                    if(parkingLot != null){
+                    if (parkingLot != null) {
                         PolygonOptions polygonOptions = new PolygonOptions();
                         polygonOptions.addAll(parkingLot.getLatLngForPolygonOptions());
                         parkingLotPolygon = map.addPolygon(polygonOptions);
                     }
                 } else if (intent.getStringExtra("ADDITIONAL_INFO").startsWith("Stop Parking")) {
-                    if(parkingLot != null){
+                    if (parkingLot != null) {
                         parkingLot.removeDeviceFromParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID));
                         truckParkLot.removePassedParkingLotFromParkingLotsOnRouteList(parkingLot);
                         truckParkLot.updateParkingLot(parkingLot);
@@ -286,14 +285,14 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         truckParkLot = TruckParkLot.getInstance();
         //addParkingLotIntoDatabase();
         final ObjectMapper mapper = new ObjectMapper();
-        if(destinationPlace != null && destinationStreet != null){
+        if (destinationPlace != null && destinationStreet != null) {
             DirectionsResult directionsResult;
-            if(lastKnownPosition == null){
-                directionsResult = directionApi.sendDirectionRequest(new LatLng(47.6681, 9.1687), destinationStreet+","+destinationPlace, map);
+            if (lastKnownPosition == null) {
+                directionsResult = directionApi.sendDirectionRequest(new LatLng(47.6681, 9.1687), destinationStreet + "," + destinationPlace, map);
             } else {
-                directionsResult = directionApi.sendDirectionRequest(new LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()), destinationStreet+","+destinationPlace, map);
+                directionsResult = directionApi.sendDirectionRequest(new LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()), destinationStreet + "," + destinationPlace, map);
             }
-            if(directionsResult == null){
+            if (directionsResult == null) {
                 Log.e(TAG, "could not read from directions api");
                 Toast toast = Toast.makeText(context, R.string.could_not_read_directions_api_toast, Toast.LENGTH_LONG);
                 toast.show();
@@ -302,7 +301,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                 Map<String, String> params = new HashMap<String, String>();
                 try {
                     int i = 0;
-                    for(LatLng latLng: path){
+                    for (LatLng latLng : path) {
                         //TODO Build latlng-latlong-converter
                         com.google.maps.model.LatLng anotherLatLong = new com.google.maps.model.LatLng(latLng.latitude, latLng.longitude);
                         params.put(String.valueOf(i++), mapper.writeValueAsString(anotherLatLong));
@@ -314,7 +313,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
                 JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                         Request.Method.POST,
-                        getString(R.string.rest_server_url)+"/parkinglots",
+                        getString(R.string.rest_server_url) + "/parkinglots",
                         new JSONObject(params),
                         response -> {
                             Iterator<String> keys = response.keys();
@@ -434,16 +433,22 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                 if (parkingLotPolygon != null) {
                     boolean containsLocation = PolyUtil.containsLocation(new LatLng(location.getLatitude(), location.getLongitude()), parkingLotPolygon.getPoints(), true);
                     if (containsLocation) {
-                        if(parkingLot != null){
+                        if (parkingLot != null) {
                             //TODO think about a more anonymous way to identify a device (e.g. uuid)
                             /*
                              * check if device is already located at parking lot.
                              * If no, device will be added to parkinglot object and database entry will be updated. otherwise nothing happens
                              */
-                            if(activity != null && parkingLot.addDeviceToParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID))){
+                            if (activity != null && parkingLot.addDeviceToParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID))) {
                                 Log.d(TAG, "onLocationResult: " + parkingLot.getName());
                                 truckParkLot.updateParkingLot(parkingLot);
                             }
+                            // ask for precise parking area usage
+                            Intent intent = new Intent();
+                            intent.setAction("START_INPUT_FREE_SLOTS");
+                            Log.d(TAG, "sending " + intent.getAction() + " broadcast");
+                            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+
                         }
                     }
                 }
@@ -499,7 +504,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     }
 
 
-
     private enum PendingGeofenceTask {
         ADD, REMOVE, NONE
     }
@@ -518,9 +522,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
-
-
-
 
 
 }
