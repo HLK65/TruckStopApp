@@ -16,7 +16,7 @@
     <string name="destination_street">Straße</string>
     <string name="destination_postal_number">Postleitzahl</string>
     <string name="destination_place">Ort</string>
-    <string name="destination_get_route">Route berechnen</string>
+    <string name="destination_get_route">Route starten</string>
 
     <string name="enter_free_slots">Bitte hilf uns die Genauigkeit der Vorhersage zu erhöhen, indem du die aktuelle Parkplatzauslastung angibst.</string>
     <string name="current_truck_park_slot">Du befindest dich auf dem Parkplatz n/a</string>

@@ -19,30 +19,97 @@
     android:layout_width="120dp"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:layout_marginStart="5dp"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
+    android:paddingRight="5dp"
+    android:paddingBottom="5dp"
+    android:background="@drawable/view_rounded_corners"
     style="@style/Widget.AppCompat.Button">
 
-    <TextView
-        android:id="@+id/parkinglotName"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"
+        android:orientation="horizontal"
+        android:gravity="center"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1">
 
-    <TextView
-        android:id="@+id/parkinglotFree"
-        android:layout_width="match_parent"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        <TextView
+            android:id="@+id/parkinglotName"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:text="Parkplatz"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
 
-    <TextView
-        android:id="@+id/parkinglotDistance"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"
+        android:orientation="horizontal"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:paddingStart="5dp"
+        android:gravity="center">
+            <ImageView
+                android:id="@+id/parkingPredictorView"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/parkinglotFree"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:textSize="14sp"
+                android:text="Freie Parplätze"
+                android:gravity="center" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingStart="5dp"
+        android:gravity="center">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="5dp"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/parkinglotDistance"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="Distanz"
+                    android:textSize="14sp"
+                    android:gravity="center" />
+
+                <TextView
+                    android:id="@+id/remainingTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:textSize="14sp"
+                    android:text="Verbleibende Zeit"
+                    android:gravity="center" />
+                <TextView
+                    android:id="@+id/arrivingTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="Ankunftszeit"
+                    android:textSize="14sp"
+                    android:gravity="center" />
+
+            </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>

@@ -8,9 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import moco.htwg.de.truckparkapp.R;
+import moco.htwg.de.truckparkapp.parking.TruckParkLot;
 
 /**
  * Created by Sebastian Thümmel on 28.12.2017.
@@ -22,7 +24,6 @@ public class DestinationFragment extends Fragment {
 
     public static DestinationFragment newInstance() {
         DestinationFragment fragment = new DestinationFragment();
-
         return fragment;
     }
 
@@ -45,9 +46,9 @@ public class DestinationFragment extends Fragment {
         destinationPostal.setText("70173");
         final TextView destinationPlace = view.findViewById(R.id.destination_place);
         destinationPlace.setText("Stuttgart");
+        TruckParkLot.getInstance();
 
-
-        Button getRouteButton = view.findViewById(R.id.button_destination_get_route);
+        ImageButton getRouteButton = view.findViewById(R.id.button_destination_get_route);
         getRouteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

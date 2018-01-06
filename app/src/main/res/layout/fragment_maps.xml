@@ -10,7 +10,7 @@
         android:name="com.google.android.gms.maps.MapView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.8"
+        android:layout_weight="0.7"
 
         tools:context="moco.htwg.de.truckparkapp.view.MapsFragment" />
 
@@ -18,8 +18,8 @@
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.2"
-
+        android:layout_weight="0.3"
+        android:background="@color/gray_light_background"
         android:scrollbars="horizontal"/>
 
     <!--TextView

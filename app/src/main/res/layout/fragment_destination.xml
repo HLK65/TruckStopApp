@@ -1,18 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/gray_light_background"
     android:layout_height="match_parent">
 
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/truck"/>
 
     <EditText
         android:id="@+id/destination_street"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="154dp"
         android:ems="10"
+        android:textSize="18sp"
+        android:layout_marginTop="20dp"
         android:inputType="textPersonName"
         android:text="@string/destination_street" />
 
@@ -20,9 +27,8 @@
         android:id="@+id/destination_place"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/destination_street"
-        android:layout_below="@+id/destination_street"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp"
         android:ems="10"
         android:inputType="textPostalAddress"
         android:text="@string/destination_place" />
@@ -31,17 +37,29 @@
         android:id="@+id/destination_postal_number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/destination_place"
-        android:layout_below="@+id/destination_place"
         android:ems="10"
+        android:textSize="18sp"
+        android:layout_marginTop="10dp"
         android:inputType="number"
         android:text="@string/destination_postal_number" />
 
-    <Button
-        android:id="@+id/button_destination_get_route"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/destination_postal_number"
-        android:layout_below="@+id/destination_postal_number"
-        android:text="@string/destination_get_route" />
-</RelativeLayout>
+    <FrameLayout
+        android:layout_width="170dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="50dp">
+
+        <ImageButton
+            android:id="@+id/button_destination_get_route"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/button_rounded_corners" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textSize="18sp"
+                android:text="@string/destination_get_route"
+                android:gravity="center"
+                android:textColor="@color/white"/>
+    </FrameLayout>
+</LinearLayout>

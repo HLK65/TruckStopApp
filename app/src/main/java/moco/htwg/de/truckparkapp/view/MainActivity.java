@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //Default Fragment (app start)
         fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
-                .replace(R.id.content, MapsFragment.newInstance(), MapsFragment.class.getSimpleName())
+                .replace(R.id.content, DestinationFragment.newInstance(), DestinationFragment.class.getSimpleName())
                 .commit();
 
         /**

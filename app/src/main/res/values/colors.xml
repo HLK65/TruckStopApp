@@ -2,5 +2,20 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
+    <color name="blue_google">#4885ed</color>
+    <color name="green_google">#008744</color>
+    <color name="green_google_light">#b4ffd9</color>
+
+    <color name="red_google">#d62d20</color>
+    <color name="red_google_light">#f8d3d1</color>
+
+    <color name="yellow_google">#ffa700</color>
+    <color name="yellow_google_light">#feedcc</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="blue_google_light">#c8daf9</color>
+    <color name="gray_light_background">#f1f1f1</color>
+
+    <color name="white">#FFFFFF</color>
+
+
 </resources>

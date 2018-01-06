@@ -129,7 +129,7 @@ public class TruckParkLot {
             if(!parkingLotsOnRoute.contains(parkingLot)){
                 this.parkingLotsOnRoute.add(parkingLot);
             }
-            if(!geofenceList.contains(parkingLot)){
+            if(!geofenceList.contains(parkingLot) && parkingLot != null){
                 this.geofenceList.add(createGeofence(parkingLot));
             }
             /*if(!optionalParkinglot.isPresent()){
@@ -152,15 +152,20 @@ public class TruckParkLot {
     }
 
     private Geofence createGeofence(ParkingLot parkingLot){
-        return new Geofence.Builder()
-                .setRequestId(parkingLot.getName())
-                .setCircularRegion(
-                        parkingLot.getGeofencePosition().lat,
-                        parkingLot.getGeofencePosition().lng, 200)
-                .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
-                .setLoiteringDelay(10000)
-                .build();
+        if(parkingLot != null){
+            return new Geofence.Builder()
+                    .setRequestId(parkingLot.getName())
+                    .setCircularRegion(
+                            parkingLot.getGeofencePosition().lat,
+                            parkingLot.getGeofencePosition().lng, 200)
+                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
+                    .setLoiteringDelay(10000)
+                    .build();
+        } else {
+            Log.e(TAG, parkingLot.toString());
+        }
+        return null;
     }
 
     public List<Geofence> getGeofenceList() {

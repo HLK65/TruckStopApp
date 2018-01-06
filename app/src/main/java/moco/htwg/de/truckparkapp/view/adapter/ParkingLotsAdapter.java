@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
@@ -31,15 +32,19 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView name, kilometres ,parkinglotsFree;
+        public TextView name, kilometres ,parkinglotsFree, arrivingTime, remainingTime;
+        public ImageView parkingPredictor;
         public Drawable background;
 
         public MyViewHolder(View itemView) {
             super(itemView);
-            name = (TextView) itemView.findViewById(R.id.parkinglotName);
-            kilometres = (TextView) itemView.findViewById(R.id.parkinglotDistance);
-            parkinglotsFree = (TextView) itemView.findViewById(R.id.parkinglotFree);
+            name = itemView.findViewById(R.id.parkinglotName);
+            kilometres = itemView.findViewById(R.id.parkinglotDistance);
+            parkinglotsFree = itemView.findViewById(R.id.parkinglotFree);
+            arrivingTime = itemView.findViewById(R.id.arrivingTime);
             background = itemView.getBackground();
+            parkingPredictor = itemView.findViewById(R.id.parkingPredictorView);
+            remainingTime = itemView.findViewById(R.id.remainingTime);
         }
     }
 
@@ -79,22 +84,45 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
 
         if(estimatedArrivalTimeInterval == now.plusMinutes(30).getHourOfDay()){
             occupancy = (parkingLot.getMaxParkingLots() - parkingLot.getDevicesAtParkingArea().size());
-            holder.kilometres.setText("Entf: "+decimalFormat.format(distance) + "\nAnk: " + estimatedArrivalTime.toString("HH:mm"));
-            holder.parkinglotsFree.setText("Frei: " + occupancy +" / "+parkingLot.getMaxParkingLots());
+
+            holder.kilometres.setText(decimalFormat.format(distance));
+            holder.remainingTime.setText(getRemainingTime(minutes));
+            holder.arrivingTime.setText(estimatedArrivalTime.toString("HH:mm")+ " Uhr");
+            holder.parkinglotsFree.setText(occupancy +" / "+parkingLot.getMaxParkingLots());
         } else {
             occupancy = (parkingLot.getMaxParkingLots() - parkingLot.getPrediction().get(key).get(0));
-            holder.kilometres.setText("Entf: "+decimalFormat.format(distance) + "\nAnk: " + estimatedArrivalTime.toString("HH:mm"));
-            holder.parkinglotsFree.setText("Progn: " + occupancy+" / "+parkingLot.getMaxParkingLots());
+            holder.kilometres.setText(decimalFormat.format(distance));
+            holder.remainingTime.setText(getRemainingTime(minutes));
+            holder.arrivingTime.setText(estimatedArrivalTime.toString("HH:mm")+ " Uhr");
+
+            holder.parkinglotsFree.setText(occupancy+" / "+parkingLot.getMaxParkingLots());
         }
         double occupencyRate = (double)occupancy / (double)parkingLot.getMaxParkingLots();
 
         if(occupencyRate > 0.3 ){
-            holder.itemView.setBackgroundColor(Color.GREEN);
+            holder.parkingPredictor.setImageDrawable(holder.itemView.getResources().getDrawable(R.drawable.parking_green, null));
+            holder.itemView.setBackgroundColor(holder.itemView.getResources().getColor(R.color.green_google_light));
         } else if(occupencyRate > 0.1){
-            holder.itemView.setBackgroundColor(Color.YELLOW);
+            holder.parkingPredictor.setImageDrawable(holder.itemView.getResources().getDrawable(R.drawable.parking_yellow, null));
+            holder.itemView.setBackgroundColor(holder.itemView.getResources().getColor(R.color.yellow_google_light));
+
         } else {
-            holder.itemView.setBackgroundColor(Color.RED);
+            holder.parkingPredictor.setImageDrawable(holder.itemView.getResources().getDrawable(R.drawable.parking_red, null));
+            holder.itemView.setBackgroundColor(holder.itemView.getResources().getColor(R.color.red_google_light));
         }
+    }
+
+    private String getRemainingTime(int timeInMinutes){
+
+        String remaining;
+        if(timeInMinutes<60){
+            remaining = String.valueOf(timeInMinutes)+" min";
+        } else {
+            int hours = timeInMinutes/60;
+            int minutes = timeInMinutes%60;
+            remaining = String.valueOf(hours)+"h "+String.valueOf(minutes)+"min";
+        }
+        return remaining;
     }
 
     @Override
