@@ -124,11 +124,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onBackPressed() {
+        Fragment fragment = null;
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if ((fragmentManager.findFragmentByTag(InputFreeSlotsFragment.class.getSimpleName()) != null
+                && fragmentManager.findFragmentByTag(InputFreeSlotsFragment.class.getSimpleName()).isVisible())
+                || (fragmentManager.findFragmentByTag(DestinationFragment.class.getSimpleName()) != null &&
+                fragmentManager.findFragmentByTag(DestinationFragment.class.getSimpleName()).isVisible())){
+            if (destinationSteet != null && !destinationSteet.isEmpty()
+                    && destinationPostal != null && !destinationPostal.isEmpty()
+                    && destinationPlace != null && !destinationPlace.isEmpty()) {
+                fragment = MapsFragment.newInstance(destinationSteet, destinationPostal, destinationPlace);
+            } else {
+                fragment = MapsFragment.newInstance();
+            }
         } else {
             super.onBackPressed();
+        }
+        if (fragment != null) {
+            fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.content, fragment, fragment.getClass().getSimpleName())
+                    .commit();
         }
     }
 
@@ -165,6 +184,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     .replace(R.id.content, fragment, fragment.getClass().getSimpleName())
                     .commit();
             item.setChecked(true);
+
         } else {
             Snackbar.make(findViewById(android.R.id.content), "Menu Item " + item.getTitle() + " pressed but not implemented", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
