@@ -6,9 +6,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalTime;
+
 import java.text.DecimalFormat;
+import java.time.LocalDate;
+
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -56,16 +63,26 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
         holder.name.setText(parkingLot.getName());
         double distance = parkingLot.getDistanceFromCurrentLocationInKilometres();
         double timeRemaining = distance/70;
-        long minutes = (long) (timeRemaining*60);
-        if(minutes > 60){
-            long hours = TimeUnit.MINUTES.toHours(minutes);
-            long restMinutes = minutes%60;
-            holder.kilometres.setText(decimalFormat.format(distance) + " /\n" + hours+" h "+restMinutes+" min");
+        int minutes = (int) (timeRemaining*60);
+        
+        LocalTime now = LocalTime.now();
+        LocalTime estimatedArrivalTime = now.plusMinutes(minutes);
+        int estimatedArrivalTimeInterval = estimatedArrivalTime.plusMinutes(30).getHourOfDay();
+        System.out.println("estimatedArrivalTimeInterval: "+estimatedArrivalTimeInterval);
+        int nowHour = now.getHourOfDay();
+        DateTime dateTime = org.joda.time.LocalDate.now().toDateTime(now);
+
+        String dayOfWeek = dateTime.dayOfWeek().getAsShortText(Locale.ENGLISH);
+        String hourOfDay = dateTime.minusHours(3).hourOfDay().getAsShortText(Locale.ENGLISH);
+        String key = dayOfWeek + "_" + hourOfDay;
+        if(estimatedArrivalTimeInterval == now.plusMinutes(30).getHourOfDay()){
+            holder.kilometres.setText("Entf: "+decimalFormat.format(distance) + "\nAnk: " + estimatedArrivalTime.toString("HH:mm"));
+            holder.parkinglotsFree.setText("Frei: " + (parkingLot.getMaxParkingLots() - parkingLot.getDevicesAtParkingArea().size())+" / "+parkingLot.getMaxParkingLots());
         } else {
-            holder.kilometres.setText(decimalFormat.format(distance) + " /\n" + minutes+" min");
+            holder.kilometres.setText("Entf: "+decimalFormat.format(distance) + "\nAnk: " + estimatedArrivalTime.toString("HH:mm"));
+            holder.parkinglotsFree.setText("Progn: " + (parkingLot.getMaxParkingLots() - parkingLot.getPrediction().get(key).get(0))+" / "+parkingLot.getMaxParkingLots());
         }
 
-        holder.parkinglotsFree.setText("Frei: " + (parkingLot.getMaxParkingLots() - parkingLot.getDevicesAtParkingArea().size())+" / "+parkingLot.getMaxParkingLots());
 
     }
 
