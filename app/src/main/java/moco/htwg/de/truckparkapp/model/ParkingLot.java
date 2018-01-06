@@ -11,10 +11,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Data;
+
 /**
  * Created by Sebastian Thümmel on 23.12.2017.
  */
 
+@Data
 public class ParkingLot {
 
     private String name;
@@ -30,6 +33,8 @@ public class ParkingLot {
     private LatLng geofencePosition;
 
     private Map<String, List<Integer>> prediction;
+
+    private Map<String, Integer> predictionAvg;
 
     @Exclude
     private double distanceFromCurrentLocationInKilometres;
