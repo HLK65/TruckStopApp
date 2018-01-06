@@ -9,6 +9,7 @@ import com.google.maps.model.LatLng;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Sebastian Thümmel on 23.12.2017.
@@ -27,6 +28,8 @@ public class ParkingLot {
     private Directions drivingDirection;
 
     private LatLng geofencePosition;
+
+    private Map<String, List<Integer>> prediction;
 
     @Exclude
     private double distanceFromCurrentLocationInKilometres;
@@ -110,6 +113,14 @@ public class ParkingLot {
         this.devicesAtParkingArea = devicesAtParkingArea;
     }
 
+    public Map<String, List<Integer>> getPrediction() {
+        return prediction;
+    }
+
+    public void setPrediction(Map<String, List<Integer>> prediction) {
+        this.prediction = prediction;
+    }
+
     public boolean addDeviceToParkingLot(String deviceId){
         if(!this.devicesAtParkingArea.contains(deviceId)){
             this.devicesAtParkingArea.add(deviceId);
@@ -155,6 +166,23 @@ public class ParkingLot {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ParkingLot that = (ParkingLot) o;
+
+        if (name.equals(that.name)) return true;
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
     public enum Directions {
         NORTH (270,90), EAST(0,180), SOUTH(90,270), WEST(180,360), ALL(0,360);
 
@@ -181,22 +209,5 @@ public class ParkingLot {
         public void setUpperBoundaryDirection(double upperBoundaryDirection) {
             this.upperBoundaryDirection = upperBoundaryDirection;
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ParkingLot that = (ParkingLot) o;
-
-        if (name.equals(that.name)) return true;
-
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
     }
 }
