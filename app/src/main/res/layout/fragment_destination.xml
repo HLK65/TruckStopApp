@@ -17,31 +17,34 @@
         android:id="@+id/destination_street"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:textSize="18sp"
         android:layout_marginTop="20dp"
+        android:ems="10"
+        android:hint="@string/destination_street"
         android:inputType="textPersonName"
-        android:text="@string/destination_street" />
+        android:text="@string/destination_street"
+        android:textSize="18sp" />
 
     <EditText
         android:id="@+id/destination_place"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:textSize="18sp"
         android:ems="10"
+        android:hint="@string/destination_place"
         android:inputType="textPostalAddress"
-        android:text="@string/destination_place" />
+        android:text="@string/destination_place"
+        android:textSize="18sp" />
 
     <EditText
         android:id="@+id/destination_postal_number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:textSize="18sp"
         android:layout_marginTop="10dp"
+        android:ems="10"
+        android:hint="@string/destination_postal_number"
         android:inputType="number"
-        android:text="@string/destination_postal_number" />
+        android:text="@string/destination_postal_number"
+        android:textSize="18sp" />
 
     <FrameLayout
         android:layout_width="170dp"
