@@ -64,7 +64,7 @@ public class GoogleMapsDirectionApi implements DirectionApi {
     }
 */
     private void addRouteToMap(DirectionsResult result, GoogleMap map){
-        if(result.routes.length > 1){
+        if(result.routes.length > 0){
             List<LatLng> path = PolyUtil.decode(result.routes[0].overviewPolyline.getEncodedPath());
             map.addPolyline(new PolylineOptions().addAll(path));
 
