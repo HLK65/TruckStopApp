@@ -53,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         fragmentManager.beginTransaction()
                 .replace(R.id.content, DestinationFragment.newInstance(), DestinationFragment.class.getSimpleName())
                 .commit();
+        navigationView.getMenu().findItem(R.id.nav_destination).setChecked(true);
+
 
         /**
          * Fragment intent listener used to request fragment change from within fragment
