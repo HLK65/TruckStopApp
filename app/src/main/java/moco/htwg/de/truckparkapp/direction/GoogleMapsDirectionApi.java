@@ -1,5 +1,7 @@
 package moco.htwg.de.truckparkapp.direction;
 
+import android.widget.Toast;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -14,6 +16,8 @@ import com.google.maps.model.TravelMode;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import moco.htwg.de.truckparkapp.R;
 
 
 /**
@@ -41,6 +45,7 @@ public class GoogleMapsDirectionApi implements DirectionApi {
             result = directionsApiRequest.await();
             addRouteToMap(result,map);
 
+
         } catch (ApiException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -59,8 +64,11 @@ public class GoogleMapsDirectionApi implements DirectionApi {
     }
 */
     private void addRouteToMap(DirectionsResult result, GoogleMap map){
-        List<LatLng> path = PolyUtil.decode(result.routes[0].overviewPolyline.getEncodedPath());
-        map.addPolyline(new PolylineOptions().addAll(path));
+        if(result.routes.length > 1){
+            List<LatLng> path = PolyUtil.decode(result.routes[0].overviewPolyline.getEncodedPath());
+            map.addPolyline(new PolylineOptions().addAll(path));
+
+        }
     }
 
     private GeoApiContext getGeoApiContext() {

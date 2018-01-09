@@ -296,9 +296,15 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                 Log.e(TAG, "could not read from directions api");
                 Toast toast = Toast.makeText(context, R.string.could_not_read_directions_api_toast, Toast.LENGTH_LONG);
                 toast.show();
-            } else {
+            } else if (directionsResult.routes.length < 1){
+                Log.e(TAG, "could not find route");
+                Toast toast = Toast.makeText(context, "Route konnte nicht berechnet werden", Toast.LENGTH_LONG);
+                toast.show();
+            }
+
+            else {
                 final List<LatLng> path = PolyUtil.decode(directionsResult.routes[0].overviewPolyline.getEncodedPath());
-                Map<String, String> params = new HashMap<String, String>();
+                Map<String, String> params = new HashMap<>();
                 try {
                     int i = 0;
                     for (LatLng latLng : path) {
