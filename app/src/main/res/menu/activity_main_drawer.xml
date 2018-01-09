@@ -26,7 +26,9 @@
     </group>
     <group
         android:id="@+id/nav_group_settings"
-        android:checkableBehavior="single">
+        android:checkableBehavior="single"
+        android:enabled="false"
+        android:visible="false">
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_menu_manage"
