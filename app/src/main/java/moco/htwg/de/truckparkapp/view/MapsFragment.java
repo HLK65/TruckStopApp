@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
@@ -124,6 +125,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
     private View view;
 
+    SharedPreferences.Editor editor;
+    SharedPreferences sharedPref;
+
     public MapsFragment() {
         // Required empty public constructor
     }
@@ -168,6 +172,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         mapView = view.findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+        sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
+
         layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
         //enteredTruckParkSlotIndicator = view.findViewById(R.id.entered_truck_park_slot_indicator);
         parkingLotsAdapter = new ParkingLotsAdapter(TruckParkLot.getInstance().getParkingLotsOnRoute());
@@ -232,6 +238,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     @Override
     public void onDetach() {
         super.onDetach();
+        saveLastKnowPosToSharedPref();
         mListener = null;
     }
 
@@ -252,19 +259,32 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
     @Override
     public void onPause() {
         super.onPause();
+        saveLastKnowPosToSharedPref();
         mapView.onPause();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        saveLastKnowPosToSharedPref();
         mapView.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
+        saveLastKnowPosToSharedPref();
+
         mapView.onLowMemory();
+    }
+
+    private void saveLastKnowPosToSharedPref() {
+        if(lastKnownPosition != null){
+            editor = sharedPref.edit();
+            editor.putString("latitude", String.valueOf(lastKnownPosition.getLatitude()));
+            editor.putString("longitude", String.valueOf(lastKnownPosition.getLongitude()));
+            editor.commit();
+        }
     }
 
     /**
@@ -284,11 +304,20 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
         startLocationUpdates();
         truckParkLot = TruckParkLot.getInstance();
         //addParkingLotIntoDatabase();
+
+        navigateToDestination();
+
+    }
+
+    private void navigateToDestination() {
         final ObjectMapper mapper = new ObjectMapper();
         if (destinationPlace != null && destinationStreet != null) {
             DirectionsResult directionsResult;
             if (lastKnownPosition == null) {
-                directionsResult = directionApi.sendDirectionRequest(new LatLng(47.6681, 9.1687), destinationStreet + "," + destinationPlace, map);
+                directionsResult = directionApi.sendDirectionRequest
+                        (new LatLng(Double.parseDouble(sharedPref.getString("latitude","47.6681")),
+                                Double.parseDouble(sharedPref.getString("longitude","9.1687"))),
+                                destinationStreet + "," + destinationPlace, map);
             } else {
                 directionsResult = directionApi.sendDirectionRequest(new LatLng(lastKnownPosition.getLatitude(), lastKnownPosition.getLongitude()), destinationStreet + "," + destinationPlace, map);
             }
@@ -323,18 +352,21 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                         new JSONObject(params),
                         response -> {
                             Iterator<String> keys = response.keys();
-                            pendingGeofenceTask = PendingGeofenceTask.ADD;
-                            boolean addedToParkingListOnRouteList = TruckParkLot.getInstance().getParkingLotsOnRouteAndAddToParkingListOnRoute(keys, parkingLotsAdapter);
-                            if(addedToParkingListOnRouteList){
-                                parkingLotsAdapter.notifyDataSetChanged();
-                                performPendingGeofenceTask();
+                            TruckParkLot.getInstance().clearParkingLotsOnRouteList();
+                            if(keys.hasNext()){
+                                pendingGeofenceTask = PendingGeofenceTask.ADD;
+                                boolean addedToParkingListOnRouteList = TruckParkLot.getInstance().getParkingLotsOnRouteAndAddToParkingListOnRoute(keys, parkingLotsAdapter);
+                                if(addedToParkingListOnRouteList){
+                                    parkingLotsAdapter.notifyDataSetChanged();
+                                    performPendingGeofenceTask();
+                                }
                             }
-                        }, error -> System.out.println(error));
+
+                        }, error -> Log.e(TAG, error.getMessage()));
                 jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(10000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
                 AppController.getInstance().addToRequestQueue(jsonObjectRequest);
             }
         }
-
     }
 
     @Override
@@ -363,8 +395,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+
         builder.addGeofences(truckParkLot.getGeofenceList());
         return builder.build();
+
     }
 
     private PendingIntent getGeofencesPendingIntent() {
@@ -434,6 +468,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 Location location = locationResult.getLastLocation();
+                lastKnownPosition = location;
+
+
                 TruckParkLot.getInstance().calculateDistanceToParkingLot(new com.google.maps.model.LatLng(location.getLatitude(), location.getLongitude()));
                 map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
                 if (parkingLotPolygon != null) {

@@ -72,6 +72,10 @@ public class TruckParkLot {
         });
     }
 
+    public void clearParkingLotsOnRouteList(){
+        this.parkingLotsOnRoute.clear();
+    }
+
     public void liveUpdateParkingLotsOnRoute(final ParkingLot parkingLot){
 
         DocumentReference documentReference = database.getRealtimeUpdates("parkingLots", parkingLot.getName(), parkingLotsOnRoute);
