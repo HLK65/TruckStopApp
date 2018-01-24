@@ -62,6 +62,10 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
         return new MyViewHolder(itemView);
     }
 
+    public void removeElementFromList(ParkingLot parkingLot){
+        this.parkingLotList.remove(parkingLot);
+    }
+
     @Override
     public void onBindViewHolder(ParkingLotsAdapter.MyViewHolder holder, int position) {
         ParkingLot parkingLot = (ParkingLot) new ArrayList(parkingLotList).get(position);
@@ -90,7 +94,7 @@ public class ParkingLotsAdapter extends RecyclerView.Adapter<ParkingLotsAdapter.
             holder.arrivingTime.setText(estimatedArrivalTime.toString("HH:mm")+ " Uhr");
             holder.parkinglotsFree.setText(occupancy +" / "+parkingLot.getMaxParkingLots());
         } else {
-            occupancy = (parkingLot.getMaxParkingLots() - parkingLot.getPrediction().get(key).get(0));
+            occupancy = (parkingLot.getMaxParkingLots() - parkingLot.getPredictionLinearRegression().get(key).intValue());
             holder.kilometres.setText(decimalFormat.format(distance));
             holder.remainingTime.setText(getRemainingTime(minutes));
             holder.arrivingTime.setText(estimatedArrivalTime.toString("HH:mm")+ " Uhr");

@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
@@ -210,7 +211,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
                     if (parkingLot != null) {
                         parkingLot.removeDeviceFromParkingLot(Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID));
                         truckParkLot.removePassedParkingLotFromParkingLotsOnRouteList(parkingLot);
-                        truckParkLot.updateParkingLot(parkingLot);
                     }
                     parkingLotPolygon = null;
 
@@ -395,7 +395,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, OnComp
 
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-
+        for(Geofence geofence : truckParkLot.getGeofenceList()){
+            System.out.println("set: "+geofence.getRequestId());
+        }
         builder.addGeofences(truckParkLot.getGeofenceList());
         return builder.build();
 

@@ -93,9 +93,14 @@ public class InputFreeSlotsFragment extends Fragment {
             }
             TruckParkLot.getInstance().updateParkingLot(parkingLot)
                     .addOnSuccessListener(aVoid -> {
-                        if (view != null) {
-                            Snackbar.make(view, R.string.updatedFreeSlots, Snackbar.LENGTH_LONG).show();
+                        try {
+                            if (view != null) {
+                                Snackbar.make(view, R.string.updatedFreeSlots, Snackbar.LENGTH_LONG).show();
+                            }
+                        } catch (Exception e){
+                            Log.e(TAG, e.getMessage());
                         }
+
                         Intent intent = new Intent("FRAGMENT_INTENT");
                         intent.putExtra("FragmentAction", "START_MAP");
 

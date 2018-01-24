@@ -4,6 +4,7 @@ import android.location.Location;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -11,6 +12,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.maps.model.LatLng;
 
@@ -20,16 +22,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
 
 import moco.htwg.de.truckparkapp.model.ParkingLot;
 import moco.htwg.de.truckparkapp.persistence.Database;
 import moco.htwg.de.truckparkapp.persistence.DatabaseFactory;
 import moco.htwg.de.truckparkapp.view.adapter.ParkingLotsAdapter;
 
-/**
- * Created by Sebastian Thümmel on 29.12.2017.
- */
 
 public class TruckParkLot {
 
@@ -40,6 +39,7 @@ public class TruckParkLot {
     private Map<String, ParkingLot> parkingLots;
     private List<ParkingLot> parkingLotsOnRoute;
     private List<Geofence> geofenceList;
+    private Map<String, ListenerRegistration> liveUpdateListener;
 
     private ParkingLotsAdapter parkingLotsAdapter;
 
@@ -57,6 +57,7 @@ public class TruckParkLot {
         parkingLots = new HashMap<>();
         geofenceList = new ArrayList<>();
         parkingLotsOnRoute = new ArrayList<>();
+        liveUpdateListener = new HashMap<>();
         database.getParkingLots("parkingLots").addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -76,10 +77,19 @@ public class TruckParkLot {
         this.parkingLotsOnRoute.clear();
     }
 
+    private void stopLiveUpdateParkingLotOnRoute(final ParkingLot parkingLot){
+        ListenerRegistration listenerRegistration = liveUpdateListener.get(parkingLot.getName());
+        if(listenerRegistration != null){
+            listenerRegistration.remove();
+        }
+
+    }
+
     public void liveUpdateParkingLotsOnRoute(final ParkingLot parkingLot){
 
         DocumentReference documentReference = database.getRealtimeUpdates("parkingLots", parkingLot.getName(), parkingLotsOnRoute);
-        documentReference.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+
+        ListenerRegistration listenerRegistration = documentReference.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
                 if ( e != null){
@@ -87,18 +97,7 @@ public class TruckParkLot {
                 }
                 if(documentSnapshot != null && documentSnapshot.exists()){
                     ParkingLot updatedParkingLot = documentSnapshot.toObject(ParkingLot.class);
-                    /*int index = -1;
 
-                    for(ParkingLot foundParkingLot : parkingLotsOnRoute){
-                        if(updatedParkingLot.getName().equals(foundParkingLot.getName())){
-                            index = parkingLotsOnRoute.indexOf(foundParkingLot);
-                        }
-                    }
-                    if(index != -1){
-                        parkingLotsOnRoute.remove(index);
-                        parkingLotsOnRoute.add(updatedParkingLot);
-                    }
-                    */
                     parkingLotsOnRoute.remove(parkingLot);
                     parkingLotsOnRoute.add(updatedParkingLot);
                     sortParkingLotsOnRouteByDistance();
@@ -108,7 +107,10 @@ public class TruckParkLot {
                     Log.d(TAG, "Updated Data: null");
                 }
             }
+
         });
+        liveUpdateListener.put(parkingLot.getName(), listenerRegistration);
+
 
     }
 
@@ -161,10 +163,10 @@ public class TruckParkLot {
                     .setRequestId(parkingLot.getName())
                     .setCircularRegion(
                             parkingLot.getGeofencePosition().lat,
-                            parkingLot.getGeofencePosition().lng, 200)
+                            parkingLot.getGeofencePosition().lng, 2000)
                     .setExpirationDuration(Geofence.NEVER_EXPIRE)
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
-                    .setLoiteringDelay(10000)
+                    .setLoiteringDelay(500)
                     .build();
         } else {
             Log.e(TAG, parkingLot.toString());
@@ -204,8 +206,13 @@ public class TruckParkLot {
     }
 
     public void removePassedParkingLotFromParkingLotsOnRouteList(ParkingLot passedParkingLot){
+        System.out.println("removed " + passedParkingLot.getName());
+        stopLiveUpdateParkingLotOnRoute(passedParkingLot);
         this.parkingLotsOnRoute.remove(passedParkingLot);
+
         if(parkingLotsAdapter != null){
+            parkingLotsAdapter.removeElementFromList(passedParkingLot);
+            sortParkingLotsOnRouteByDistance();
             parkingLotsAdapter.notifyDataSetChanged();
         }
     }
