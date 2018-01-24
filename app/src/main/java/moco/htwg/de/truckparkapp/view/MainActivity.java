@@ -6,11 +6,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -22,6 +25,8 @@ import android.view.MenuItem;
 
 import moco.htwg.de.truckparkapp.R;
 import moco.htwg.de.truckparkapp.service.GeofenceTransitionsIntentService;
+
+import static moco.htwg.de.truckparkapp.view.MapsFragment.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MapsFragment.OnFragmentInteractionListener, FirestoreFragment.OnFragmentInteractionListener, InputFreeSlotsFragment.OnFragmentInteractionListener {
 
@@ -48,16 +53,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        //Default Fragment (app start)
         fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.content, DestinationFragment.newInstance(), DestinationFragment.class.getSimpleName())
-                .commit();
-        navigationView.getMenu().findItem(R.id.nav_destination).setChecked(true);
+        // only open fragment if permission is granted
+        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        } else {
+            startDefaultFragment(navigationView);
+        }
 
-
-        /**
-         * Fragment intent listener used to request fragment change from within fragment
+        /*
+          Fragment intent listener used to request fragment change from within fragment
          */
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
             @Override
@@ -124,6 +133,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }, new IntentFilter(GeofenceTransitionsIntentService.PARKING_BROADCAST));
     }
 
+    private void startDefaultFragment(NavigationView navigationView) {
+        //Default Fragment (app start)
+        fragmentManager.beginTransaction()
+                .replace(R.id.content, DestinationFragment.newInstance(), DestinationFragment.class.getSimpleName())
+                .commit();
+        navigationView.getMenu().findItem(R.id.nav_destination).setChecked(true);
+    }
+
     @Override
     public void onBackPressed() {
         Fragment fragment = null;
@@ -134,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if ((fragmentManager.findFragmentByTag(InputFreeSlotsFragment.class.getSimpleName()) != null
                 && fragmentManager.findFragmentByTag(InputFreeSlotsFragment.class.getSimpleName()).isVisible())
                 || (fragmentManager.findFragmentByTag(DestinationFragment.class.getSimpleName()) != null &&
-                fragmentManager.findFragmentByTag(DestinationFragment.class.getSimpleName()).isVisible())){
+                fragmentManager.findFragmentByTag(DestinationFragment.class.getSimpleName()).isVisible())) {
             if (destinationSteet != null && !destinationSteet.isEmpty()
                     && destinationPostal != null && !destinationPostal.isEmpty()
                     && destinationPlace != null && !destinationPlace.isEmpty()) {
@@ -172,12 +189,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragment = DestinationFragment.newInstance();
         } else if (id == R.id.nav_inputSlots) {
             fragment = InputFreeSlotsFragment.newInstance(parkingLotId);
-        } else if (id == R.id.nav_settings) {
-            // todo
         } else if (id == R.id.nav_firestore) {
             fragment = FirestoreFragment.newInstance();
-        } else if (id == R.id.nav_test) {
-            // todo
         }
 
         if (fragment != null) {
@@ -203,5 +216,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Log.w(TAG, "onFragmentInteraction: No Action Implemented!");
     }
 
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (permsRequestCode == PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                NavigationView navigationView = findViewById(R.id.nav_view);
+                navigationView.setNavigationItemSelectedListener(this);
+                startDefaultFragment(navigationView);
+            } else {
+                finish(); //close app
+            }
+        }
+    }
 
 }
